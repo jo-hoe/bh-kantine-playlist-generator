@@ -1,6 +1,5 @@
 from datetime import datetime
 import logging
-import re
 from cloudscraper import create_scraper
 from lxml import html as lxml_html
 
