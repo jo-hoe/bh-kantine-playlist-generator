@@ -24,6 +24,8 @@ class AbstractPlaylistGenerator(ABC):
 
     @abc.abstractmethod
     def update_playlist(self, playlist_id: str, list_of_track_ids: list[str]) -> bool:
+        # Updates the playlist with the given track IDs
+        # The new track IDs should replace any existing tracks in the playlist
         raise NotImplementedError("Subclasses must implement this method.")
 
     @abc.abstractmethod
@@ -31,7 +33,7 @@ class AbstractPlaylistGenerator(ABC):
         # Generates an empty playlist with the given name
         raise NotImplementedError("Subclasses must implement this method.")
 
-    def process(self, artists_performance_dates: tuple[datetime, str]) -> bool:
+    def process(self, artists_performance_dates: list[tuple[datetime, str]]) -> bool:
         playlist_id = self.get_playlist_id_by_name(self._playlist_name)
         if not playlist_id:
             if self.generate_playlist(self._playlist_name):
