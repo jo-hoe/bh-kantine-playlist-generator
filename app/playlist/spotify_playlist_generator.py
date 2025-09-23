@@ -81,7 +81,7 @@ class SpotifyPlaylistGenerator(AbstractPlaylistGenerator):
             if playlist['name'] == playlist_name:
                 return playlist['id']
         return None
-
+    
     def get_top_tracks_for_artist(self, artist_name: str, maximum_tracks_per_artist: int) -> list[str]:
         client = self._get_spotify_client()
         results = client.search(q='artist:' + artist_name, type='artist')
@@ -101,13 +101,27 @@ class SpotifyPlaylistGenerator(AbstractPlaylistGenerator):
                 f"No exact artist match found for name: {artist_name}")
             return []
 
-        top_tracks_data = client.artist_top_tracks(artist_id) # will maximum return 10 tracks
+        top_tracks_data = client.artist_top_tracks(artist_id)
         if not top_tracks_data or 'tracks' not in top_tracks_data:
             logging.warning(f"No top tracks found for artist: {artist_name}")
             return []
-        
-        top_tracks = top_tracks_data['tracks'][:maximum_tracks_per_artist]
-        track_ids = [track['id'] for track in top_tracks]
+
+        # Prefer tracks where only the given artist is credited
+        solo_tracks = []
+        other_tracks = []
+        for track in top_tracks_data['tracks']:
+            artist_names = [a['name'].lower() for a in track['artists']]
+            if len(track['artists']) == 1 and artist_names[0] == artist_name.lower():
+                solo_tracks.append(track['id'])
+            else:
+                other_tracks.append(track['id'])
+
+        # Fill up to maximum_tracks_per_artist, preferring solo tracks
+        track_ids = solo_tracks[:maximum_tracks_per_artist]
+        if len(track_ids) < maximum_tracks_per_artist:
+            needed = maximum_tracks_per_artist - len(track_ids)
+            track_ids += other_tracks[:needed]
+
         return track_ids
 
     def update_playlist(self, playlist_id: str, list_of_track_ids: list[str]) -> bool:
