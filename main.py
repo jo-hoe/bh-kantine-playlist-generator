@@ -24,6 +24,6 @@ if __name__ == "__main__":
             tracks.extend(details)
 
     generator = SpotifyPlaylistGenerator(
-        "Berghain Am Kantine: Next Up", max_track_number_per_artist, "token_cache.txt")
+        "Berghain Am Kantine: Next Up", max_track_number_per_artist, os.path.join("cache", "token_cache.txt"))
 
     generator.process(tracks)

@@ -81,7 +81,7 @@ class SpotifyPlaylistGenerator(AbstractPlaylistGenerator):
             if playlist['name'] == playlist_name:
                 return playlist['id']
         return None
-    
+
     def get_top_tracks_for_artist(self, artist_name: str, maximum_tracks_per_artist: int) -> list[str]:
         client = self._get_spotify_client()
         results = client.search(q='artist:' + artist_name, type='artist')
