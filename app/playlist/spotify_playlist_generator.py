@@ -8,45 +8,9 @@ from spotipy.cache_handler import CacheHandler
 from app.playlist.abstract_playlist_generator import AbstractPlaylistGenerator
 
 
-class FileCacheHandler(CacheHandler):
-    """
-    A cache handler that stores tokens in a file.
-    """
-
-    def __init__(self, filepath: str) -> None:
-        self.filepath = filepath
-
-    def get_cached_token(self):
-        try:
-            with open(self.filepath, "r") as f:
-                token_info = f.read()
-                return eval(token_info)  # Convert string back to dictionary
-        except FileNotFoundError:
-            logging.warning(f"Token cache file not found at: {self.filepath}")
-            return None
-        except Exception as e:
-            logging.error(f"Error reading token from cache: {e}")
-            return None
-
-    def save_token_to_cache(self, token_info):
-        try:
-            with open(self.filepath, "w") as f:
-                f.write(str(token_info))  # Convert dictionary to string
-        except Exception as e:
-            logging.error(f"Error saving token to cache: {e}")
-
-    def does_file_contain_data(self, file_path: str) -> bool:
-        try:
-            with open(file_path, 'r') as f:
-                content = f.read().strip()
-                return bool(content)
-        except FileNotFoundError:
-            return False
-
-
 class SpotifyPlaylistGenerator(AbstractPlaylistGenerator):
 
-    TRACK_ID_LIMIT = 50  # Spotify API limit for track IDs per request
+    TRACK_ID_LIMIT = 32  # Spotify API limit for track IDs per request
     REQUIRED_SCOPES = "user-library-read,playlist-read-private,playlist-modify-private,playlist-modify-public"
     ENVIRONMENT_VARIABLES = [
         "SPOTIFY_CLIENT_ID",
@@ -141,6 +105,25 @@ class SpotifyPlaylistGenerator(AbstractPlaylistGenerator):
 
         return track_ids
 
+    def _clear_playlist(self, playlist_id: str) -> bool:
+        # Clears all tracks from the playlist
+        client = self._get_spotify_client()
+        try:
+            while True:
+                response = client.playlist_tracks(
+                    playlist_id, limit=self.TRACK_ID_LIMIT)
+                items = response.get('items', [])
+                if not items:
+                    break
+                client.playlist_remove_all_occurrences_of_items(
+                    playlist_id, [item['track']['id'] for item in items])
+            logging.info(f"Playlist with ID: {playlist_id} cleared.")
+            return True
+        except Exception as e:
+            logging.error(
+                f"Failed to clear playlist with ID: {playlist_id}. Error: {e}")
+            return False
+
     def update_playlist(self, playlist_id: str, list_of_track_ids: list[str]) -> bool:
         # Updates the playlist with the given track IDs
         # The new track IDs should replace any existing tracks in the playlist
@@ -150,15 +133,7 @@ class SpotifyPlaylistGenerator(AbstractPlaylistGenerator):
 
         client = self._get_spotify_client()
         try:
-            # delete all existing tracks in the playlist
-            while True:
-                response = client.playlist_tracks(
-                    playlist_id, limit=100)
-                items = response.get('items', [])
-                if not items:
-                    break
-                client.playlist_remove_all_occurrences_of_items(
-                    playlist_id, [item['track']['id'] for item in items])
+            self._clear_playlist(playlist_id)
 
             for i in range(0, len(list_of_track_ids), self.TRACK_ID_LIMIT):
                 chunk = list_of_track_ids[i:i + self.TRACK_ID_LIMIT]
@@ -183,4 +158,40 @@ class SpotifyPlaylistGenerator(AbstractPlaylistGenerator):
         except Exception as e:
             logging.error(
                 f"Failed to create playlist: {playlist_name}. Error: {e}")
+            return False
+
+
+class FileCacheHandler(CacheHandler):
+    """
+    A cache handler that stores tokens in a file.
+    """
+
+    def __init__(self, filepath: str) -> None:
+        self.filepath = filepath
+
+    def get_cached_token(self):
+        try:
+            with open(self.filepath, "r") as f:
+                token_info = f.read()
+                return eval(token_info)  # Convert string back to dictionary
+        except FileNotFoundError:
+            logging.warning(f"Token cache file not found at: {self.filepath}")
+            return None
+        except Exception as e:
+            logging.error(f"Error reading token from cache: {e}")
+            return None
+
+    def save_token_to_cache(self, token_info):
+        try:
+            with open(self.filepath, "w") as f:
+                f.write(str(token_info))  # Convert dictionary to string
+        except Exception as e:
+            logging.error(f"Error saving token to cache: {e}")
+
+    def does_file_contain_data(self, file_path: str) -> bool:
+        try:
+            with open(file_path, 'r') as f:
+                content = f.read().strip()
+                return bool(content)
+        except FileNotFoundError:
             return False
