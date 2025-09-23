@@ -101,7 +101,11 @@ class SpotifyPlaylistGenerator(AbstractPlaylistGenerator):
                 f"No exact artist match found for name: {artist_name}")
             return []
 
-        top_tracks_data = client.artist_top_tracks(artist_id)
+        top_tracks_data = client.artist_top_tracks(artist_id) # will maximum return 10 tracks
+        if not top_tracks_data or 'tracks' not in top_tracks_data:
+            logging.warning(f"No top tracks found for artist: {artist_name}")
+            return []
+        
         top_tracks = top_tracks_data['tracks'][:maximum_tracks_per_artist]
         track_ids = [track['id'] for track in top_tracks]
         return track_ids
