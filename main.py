@@ -1,3 +1,4 @@
+from operator import is_
 import os
 from datetime import datetime
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -15,6 +16,8 @@ if __name__ == "__main__":
     max_workers = int(os.environ.get("PARALLEL_WORKERS", 8))
     max_track_number_per_artist = int(
         os.environ.get("MAX_TRACK_NUMBER_PER_ARTIST", 3))
+    is_running_in_container = os.environ.get(
+        "IS_RUNNING_IN_CONTAINER", "false").lower() == "true"
 
     with ThreadPoolExecutor(max_workers=max_workers) as executor:
         future_to_url = {executor.submit(
@@ -24,6 +27,9 @@ if __name__ == "__main__":
             tracks.extend(details)
 
     generator = SpotifyPlaylistGenerator(
-        "Berghain Am Kantine: Next Up", max_track_number_per_artist, os.path.join("cache", "token_cache.txt"))
+        "Berghain Am Kantine: Next Up",
+        max_track_number_per_artist,
+        os.path.join("cache", "token_cache.txt"),
+        is_running_in_container)
 
     generator.process(tracks)
