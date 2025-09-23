@@ -90,7 +90,17 @@ class SpotifyPlaylistGenerator(AbstractPlaylistGenerator):
             logging.warning(f"No artist found for name: {artist_name}")
             return []
 
-        artist_id = items[0]['id']
+        # get artist ID of artist with exact name match
+        artist_id = None
+        for item in items:
+            if item['name'].lower() == artist_name.lower():
+                artist_id = item['id']
+                break
+        if not artist_id:
+            logging.warning(
+                f"No exact artist match found for name: {artist_name}")
+            return []
+
         top_tracks_data = client.artist_top_tracks(artist_id)
         top_tracks = top_tracks_data['tracks'][:maximum_tracks_per_artist]
         track_ids = [track['id'] for track in top_tracks]
@@ -106,20 +116,19 @@ class SpotifyPlaylistGenerator(AbstractPlaylistGenerator):
         client = self._get_spotify_client()
         try:
             # Retrieve all tracks from the playlist using pagination
-            offset = 0
             while True:
-                response = client.playlist_tracks(playlist_id, offset=offset, limit=100)
+                response = client.playlist_tracks(
+                    playlist_id, limit=100)
                 items = response.get('items', [])
                 if not items:
                     break
-                offset += len(items)
                 client.playlist_remove_all_occurrences_of_items(
                     playlist_id, [item['track']['id'] for item in items])
 
             for i in range(0, len(list_of_track_ids), self.TRACK_ID_LIMIT):
                 chunk = list_of_track_ids[i:i + self.TRACK_ID_LIMIT]
                 client.playlist_add_items(playlist_id, chunk)
-            
+
             logging.info(
                 f"Playlist with ID: {playlist_id} updated with {len(list_of_track_ids)} tracks.")
             return True
