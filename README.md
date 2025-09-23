@@ -22,15 +22,19 @@ SPOTIFY_REDIRECT_URI=http://127.0.0.1:9090
 # Optional: Customize script behavior
 PARALLEL_WORKERS=8
 MAX_TRACK_NUMBER_PER_ARTIST=3
+PLAYLIST_NAME=Berghain Am Kantine: Next Up
 ```
 
 ### Environment Variables
 
-- `SPOTIFY_CLIENT_ID` (Required): Your Spotify application client ID.
-- `SPOTIFY_CLIENT_SECRET` (Required): Your Spotify application client secret.
-- `SPOTIFY_REDIRECT_URI` (Required): The redirect URI you configured in your Spotify app. Must be listening on the same port if running in Docker.
-- `PARALLEL_WORKERS` (Optional): The number of concurrent workers for scraping event details. Defaults to `8`.
-- `MAX_TRACK_NUMBER_PER_ARTIST` (Optional): The maximum number of top tracks to add for each artist. Defaults to `3`.
+| Variable                      | Required | Description                                                                                                           | Default                       |
+|------------------------------|----------|-----------------------------------------------------------------------------------------------------------------------|-------------------------------|
+| `SPOTIFY_CLIENT_ID`          | Yes      | Spotify application client ID.                                                                                        | —                             |
+| `SPOTIFY_CLIENT_SECRET`      | Yes      | Spotify application client secret.                                                                                    | —                             |
+| `SPOTIFY_REDIRECT_URI`       | Yes      | Redirect URI configured in your Spotify app. Must be reachable; if running in Docker, ensure your host matches port. | Example: `http://127.0.0.1:9090` |
+| `PLAYLIST_NAME`              | No       | Name of the Spotify playlist to create or update.                                                                     | `Berghain Am Kantine: Next Up` |
+| `PARALLEL_WORKERS`           | No       | Number of concurrent workers for scraping event details.                                                              | `8`                           |
+| `MAX_TRACK_NUMBER_PER_ARTIST`| No       | Maximum number of top tracks to add per artist.                                                                       | `3`                           |
 
 ## Usage
 
