@@ -1,8 +1,6 @@
 
-from enum import auto
 from functools import lru_cache
 import logging
-from math import e, log
 import os
 import spotipy
 from spotipy.oauth2 import SpotifyOAuth
@@ -37,11 +35,24 @@ class FileCacheHandler(CacheHandler):
         except Exception as e:
             logging.error(f"Error saving token to cache: {e}")
 
+    def does_file_contain_data(self, file_path: str) -> bool:
+        try:
+            with open(file_path, 'r') as f:
+                content = f.read().strip()
+                return bool(content)
+        except FileNotFoundError:
+            return False
+
 
 class SpotifyPlaylistGenerator(AbstractPlaylistGenerator):
 
     TRACK_ID_LIMIT = 50  # Spotify API limit for track IDs per request
     REQUIRED_SCOPES = "user-library-read,playlist-read-private,playlist-modify-private,playlist-modify-public"
+    ENVIRONMENT_VARIABLES = [
+        "SPOTIFY_CLIENT_ID",
+        "SPOTIFY_CLIENT_SECRET",
+        "SPOTIFY_REDIRECT_URI"
+    ]
 
     def __init__(self, playlist_name: str,
                  maximum_tracks_per_artist: int,
@@ -51,54 +62,33 @@ class SpotifyPlaylistGenerator(AbstractPlaylistGenerator):
         self._token_cache_file_path = token_cache_file_path
         self._is_running_in_container = is_running_in_container
 
-        self._init_token_cache()
-
-    def _init_token_cache(self) -> None:
-        if not self._does_file_exist(self._token_cache_file_path) or self._is_file_empty(self._token_cache_file_path):
-            logging.info(
-                f"Token cache file is missing or empty at: {self._token_cache_file_path}. A new file will be created upon authentication.")
-
         self._get_spotify_client()
-
-    def _does_file_exist(self, file_path: str) -> bool:
-        try:
-            with open(file_path, 'r'):
-                return True
-        except FileNotFoundError:
-            return False
-
-    def _is_file_empty(self, file_path: str) -> bool:
-        try:
-            with open(file_path, 'r') as f:
-                content = f.read().strip()
-                return not bool(content)
-        except FileNotFoundError:
-            return False
 
     @lru_cache(maxsize=1)
     def _get_spotify_client(self) -> spotipy.Spotify:
         # setup Spotify API
-        cache_handler = FileCacheHandler(filepath=self._token_cache_file_path)
         automatically_open_browser = not self._is_running_in_container
 
+        cache_handler = FileCacheHandler(filepath=self._token_cache_file_path)
+        if not cache_handler.does_file_contain_data(self._token_cache_file_path):
+            logging.info(
+                f"Token cache file is missing or empty at: {self._token_cache_file_path}. A new file will be created upon authentication.")
+
+        # check which environment variables are missing
+        missing_environment_vars = [
+            var for var in self.ENVIRONMENT_VARIABLES if var not in os.environ or not os.environ[var]]
+
         # check if env variables are set
-        if cache_handler.get_cached_token() not in [None, ""]:
-            logging.info(
-                "Environment variables for Spotify credentials not fully set - using cached token.")
-            # rely on cached token only
-            return spotipy.Spotify(auth_manager=SpotifyOAuth(scope=self.REQUIRED_SCOPES, cache_handler=cache_handler))
-        elif all([var in os.environ for var in ["SPOTIPY_CLIENT_ID", "SPOTIPY_CLIENT_SECRET", "SPOTIPY_REDIRECT_URI"]]):
-            logging.info(
-                "Using Spotify credentials from environment variables.")
+        if not missing_environment_vars:
             return spotipy.Spotify(auth_manager=SpotifyOAuth(scope=self.REQUIRED_SCOPES,
-                                                             client_id=os.environ["SPOTIPY_CLIENT_ID"],
-                                                             client_secret=os.environ["SPOTIPY_CLIENT_SECRET"],
-                                                             redirect_uri=os.environ["SPOTIPY_REDIRECT_URI"],
-                                                             open_browser=automatically_open_browser))
+                                                             client_id=os.environ["SPOTIFY_CLIENT_ID"],
+                                                             client_secret=os.environ["SPOTIFY_CLIENT_SECRET"],
+                                                             redirect_uri=os.environ["SPOTIFY_REDIRECT_URI"],
+                                                             open_browser=automatically_open_browser,
+                                                             cache_handler=cache_handler))
         else:
-            logging.error("No valid Spotify authentication method available.")
             raise EnvironmentError(
-                "Spotify credentials not set and no cached token available.")
+                f"Spotify credentials are missing: {', '.join(missing_environment_vars)}")
 
     def get_playlist_id_by_name(self, playlist_name: str) -> str | None:
         # returns the playlist ID if found, otherwise None
@@ -160,7 +150,7 @@ class SpotifyPlaylistGenerator(AbstractPlaylistGenerator):
 
         client = self._get_spotify_client()
         try:
-            # Retrieve all tracks from the playlist using pagination
+            # delete all existing tracks in the playlist
             while True:
                 response = client.playlist_tracks(
                     playlist_id, limit=100)

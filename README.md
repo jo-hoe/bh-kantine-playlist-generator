@@ -1,15 +1,65 @@
-# bh-kantine-playlist-generator
+# Berghain Kantine Playlist Generator
 
-### Secrets
+This project automatically generates a Spotify playlist based on the artists scheduled to perform at Berghain's Kantine. It scrapes the event listings from the Berghain website, finds the top tracks for each artist on Spotify, and creates or updates a playlist with those tracks.
 
-The script assumes that either a token cache file exists or that the following environment variables are set:
+## Requirements
 
-```txt
-SPOTIPY_CLIENT_ID=your_client_id
-SPOTIPY_CLIENT_SECRET=your_client_secret
-SPOTIPY_REDIRECT_URI=your_redirect_uri (e.g. 'http://127.0.0.1:9090')
+- Python 3.12+
+- Docker (for containerized execution)
+
+## Configuration
+
+The application requires Spotify API credentials to function. You can get these by creating a new app in your [Spotify Developer Dashboard](https://developer.spotify.com/documentation/web-api/concepts/apps).
+
+Create a `.env` file in the root of the project with the following content:
+
+```env
+# Spotify API Credentials
+SPOTIFY_CLIENT_ID=your_client_id
+SPOTIFY_CLIENT_SECRET=your_client_secret
+SPOTIFY_REDIRECT_URI=http://127.0.0.1:9090
+
+# Optional: Customize script behavior
+PARALLEL_WORKERS=8
+MAX_TRACK_NUMBER_PER_ARTIST=3
 ```
 
-In case environment variables are used, the app will open a local HTTP server to handle the OAuth redirect and obtain the token.
-You can get these values by creating a Spotify Developer account and [creating a new app](https://developer.spotify.com/documentation/web-api/concepts/apps).
+### Environment Variables
 
+- `SPOTIFY_CLIENT_ID` (Required): Your Spotify application client ID.
+- `SPOTIFY_CLIENT_SECRET` (Required): Your Spotify application client secret.
+- `SPOTIFY_REDIRECT_URI` (Required): The redirect URI you configured in your Spotify app. Must be listening on the same port if running in Docker.
+- `PARALLEL_WORKERS` (Optional): The number of concurrent workers for scraping event details. Defaults to `8`.
+- `MAX_TRACK_NUMBER_PER_ARTIST` (Optional): The maximum number of top tracks to add for each artist. Defaults to `3`.
+
+## Usage
+
+### Running with Docker (Recommended)
+
+The easiest way to run the script is using Docker Compose. This method handles all dependencies and ensures a consistent environment.
+
+1. **Build and run the container:**
+
+    ```bash
+    docker-compose up --build
+    ```
+
+    The first time you run this, you will be prompted to authenticate with Spotify. Open the URL printed in the console, grant access, and you will be redirected to the `SPOTIFY_REDIRECT_URI`. The authentication token will be saved in the `./cache` directory, so you won't need to authenticate again unless the token expires.
+
+### Running Locally
+
+You can also run the script directly on your machine.
+
+1. **Install dependencies:**
+
+    ```bash
+    pip install -r requirements.txt
+    ```
+
+2. **Run the script:**
+
+    ```bash
+    python main.py
+    ```
+
+    Similar to the Docker method, you will need to complete the Spotify OAuth flow in your browser upon first run.

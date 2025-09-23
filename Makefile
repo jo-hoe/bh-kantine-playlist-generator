@@ -33,5 +33,5 @@ test: ## run all tests
 
 .PHONY: start-docker
 start-docker:
-	@docker compose -f ${ROOT_DIR}compose.yaml up --build 
+	@docker compose -f ${ROOT_DIR}docker-compose.yml up --build
 
