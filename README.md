@@ -1,6 +1,10 @@
 # Berghain Kantine Playlist Generator
 
-This project automatically generates a Spotify playlist based on the artists scheduled to perform at Berghain's Kantine. It scrapes the event listings from the Berghain website, finds the top tracks for each artist on Spotify, and creates or updates a playlist with those tracks.
+[![test](https://github.com/jo-hoe/bh-kantine-playlist-generator/actions/workflows/test.yml/badge.svg?branch=main)](https://github.com/jo-hoe/bh-kantine-playlist-generator/actions/workflows/test.yml)
+[![Release Image](https://github.com/jo-hoe/bh-kantine-playlist-generator/actions/workflows/image-release.yml/badge.svg)](https://github.com/jo-hoe/bh-kantine-playlist-generator/actions/workflows/image-release.yml)
+
+This project automatically generates a Spotify playlist based on the artists scheduled to perform at Berghain's Kantine.
+It scrapes the event listings from the Berghain website, finds the top tracks for each artist on Spotify, and creates or updates a playlist with those tracks.
 
 ## Requirements
 
@@ -9,7 +13,8 @@ This project automatically generates a Spotify playlist based on the artists sch
 
 ## Configuration
 
-The application requires Spotify API credentials to function. You can get these by creating a new app in your [Spotify Developer Dashboard](https://developer.spotify.com/documentation/web-api/concepts/apps).
+The application requires Spotify API credentials to function.
+You can get these by creating a new app in your [Spotify Developer Dashboard](https://developer.spotify.com/documentation/web-api/concepts/apps).
 
 Create a `.env` file in the root of the project with the following content:
 
