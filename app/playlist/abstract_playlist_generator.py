@@ -34,6 +34,9 @@ class AbstractPlaylistGenerator(ABC):
         raise NotImplementedError("Subclasses must implement this method.")
 
     def process(self, artists_performance_dates: list[tuple[datetime, str]]) -> bool:
+        # ordered list of by performance date
+        artists_performance_dates.sort(key=lambda x: x[0])
+
         playlist_id = self.get_playlist_id_by_name(self._playlist_name)
         if not playlist_id:
             if self.generate_playlist(self._playlist_name):

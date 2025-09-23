@@ -36,6 +36,8 @@ class FileCacheHandler(CacheHandler):
 
 class SpotifyPlaylistGenerator(AbstractPlaylistGenerator):
 
+    TRACK_ID_LIMIT = 50  # Spotify API limit for track IDs per request
+
     def __init__(self, playlist_name: str, maximum_tracks_per_artist: int, token_cache_file_path: str) -> None:
         super().__init__(playlist_name, maximum_tracks_per_artist)
         self._token_cache_file_path = token_cache_file_path
@@ -97,9 +99,27 @@ class SpotifyPlaylistGenerator(AbstractPlaylistGenerator):
     def update_playlist(self, playlist_id: str, list_of_track_ids: list[str]) -> bool:
         # Updates the playlist with the given track IDs
         # The new track IDs should replace any existing tracks in the playlist
+        if not list_of_track_ids:
+            logging.warning("No track IDs provided to update the playlist.")
+            return False
+
         client = self._get_spotify_client()
         try:
-            client.playlist_replace_items(playlist_id, list_of_track_ids)
+            # Retrieve all tracks from the playlist using pagination
+            offset = 0
+            while True:
+                response = client.playlist_tracks(playlist_id, offset=offset, limit=100)
+                items = response.get('items', [])
+                if not items:
+                    break
+                offset += len(items)
+                client.playlist_remove_all_occurrences_of_items(
+                    playlist_id, [item['track']['id'] for item in items])
+
+            for i in range(0, len(list_of_track_ids), self.TRACK_ID_LIMIT):
+                chunk = list_of_track_ids[i:i + self.TRACK_ID_LIMIT]
+                client.playlist_add_items(playlist_id, chunk)
+            
             logging.info(
                 f"Playlist with ID: {playlist_id} updated with {len(list_of_track_ids)} tracks.")
             return True
@@ -112,9 +132,11 @@ class SpotifyPlaylistGenerator(AbstractPlaylistGenerator):
         # Generates an empty playlist with the given name
         client = self._get_spotify_client()
         try:
-            client.user_playlist_create(user=client.current_user()['id'], name=playlist_name)
+            client.user_playlist_create(user=client.current_user()[
+                                        'id'], name=playlist_name)
             logging.info(f"Playlist created successfully: {playlist_name}")
             return True
         except Exception as e:
-            logging.error(f"Failed to create playlist: {playlist_name}. Error: {e}")
+            logging.error(
+                f"Failed to create playlist: {playlist_name}. Error: {e}")
             return False
