@@ -13,7 +13,7 @@ if __name__ == "__main__":
 
     event_date_urls = get_all_event_date_urls()
     tracks: list[tuple[datetime, str]] = []
-    playlist_name = os.environ.get("PLAYLIST_NAME", "Berghain Am Kantine: Next Up")
+    playlist_name = os.environ.get("PLAYLIST_NAME", "Kantine Am Berghain: Next Up")
     max_workers = int(os.environ.get("PARALLEL_WORKERS", 8))
     max_track_number_per_artist = int(
         os.environ.get("MAX_TRACK_NUMBER_PER_ARTIST", 3))
