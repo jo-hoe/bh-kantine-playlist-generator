@@ -1,24 +1,12 @@
 
 import unittest
-from app.crawler import get_all_event_date_urls, get_event_date_details
+from app.crawler import get_event_date_details_for_url, KANTINE_PROGRAM_URL
 
 
 class TestIntegrationCrawler(unittest.TestCase):
 
-    def test_get_all_event_date_urls(self):
-        items = get_all_event_date_urls()
+    def test_get_event_date_details_for_url(self):
+        items = get_event_date_details_for_url(KANTINE_PROGRAM_URL)
 
-        assert len(items) > 2, "Expected more than 2 event URLs"
-        assert len(items) == len(
-            set(items)), "Expected all event URLs to be unique"
-
-    def test_get_event_date_details(self):
-        items = get_all_event_date_urls()
-        for item in items:
-            event_details = get_event_date_details(item)
-            if len(event_details) > 0:
-                assert len(
-                    event_details) > 0, f"Expected at least one artist name for event URL: {item}"
-                return  # return if we found at least one event with artist names
-
-        self.fail("No event URL with artist names found")
+        assert len(
+            items) > 0, f"Expected at least one artist name for event URL: {KANTINE_PROGRAM_URL}"
