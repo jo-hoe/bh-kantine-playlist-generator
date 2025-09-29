@@ -1,9 +1,0 @@
-services:
-  playlist-generator:
-    build: .
-    ports:
-      - "9090:9090"
-    volumes:
-      - ${PWD}/cache/:/app/cache/
-    env_file:
-      - .env

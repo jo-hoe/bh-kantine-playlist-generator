@@ -1,4 +1,0 @@
-cloudscraper==1.2.71
-lxml==6.0.2
-python-dotenv==1.1.1
-spotipy==2.25.1
