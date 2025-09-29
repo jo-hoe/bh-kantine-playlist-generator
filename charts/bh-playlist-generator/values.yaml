@@ -7,6 +7,7 @@
 # 3. Sealed Secrets: Use kubeseal to encrypt secrets
 # 4. Kubernetes native: kubectl create secret generic spotify-credentials --from-literal=...
 secret:
+  name: spotify-credentials
   data:
     # -- Spotify application client ID for API authentication. NEVER commit real values to git!
     spotifyClientId: "your-spotify-client-id"
