@@ -10,9 +10,10 @@ EVENT_ITEM_XPATH = '//a[starts-with(@href, "/de/event/")]'
 ITEM_DETAIL_XPATH = '//span[@class="font-bold"]'
 
 
-class LOCATION_URL(Enum):
-    KANTINE_PROGRAM_URL = HOST_URL + "/de/program/kantine-am-berghain/"
-    KLUB_PROGRAM_URL = HOST_URL + "/de/program/"
+URL_MAPPING = {
+    "Kantine": HOST_URL + "/de/program/kantine-am-berghain/",
+    "Klub": HOST_URL + "/de/program/"
+}
 
 
 def get_event_date_details_for_url(url: str) -> list[tuple[datetime, str]]:

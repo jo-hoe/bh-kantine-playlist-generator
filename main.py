@@ -2,23 +2,24 @@ import os
 import logging
 import sys
 
-from app.crawler import LOCATION_URL, get_event_date_details_for_url
+from app.crawler import URL_MAPPING, get_event_date_details_for_url
 from app.playlist.spotify_playlist_generator import SpotifyPlaylistGenerator
 
 
 def main():
-    logging.basicConfig()
-    logging.getLogger().setLevel(logging.INFO)
-
     playlist_name = os.environ.get(
         "PLAYLIST_NAME", "Kantine Am Berghain: Next Up")
     max_track_number_per_artist = int(
         os.environ.get("MAX_TRACK_NUMBER_PER_ARTIST", 3))
     is_running_in_container = os.environ.get(
         "IS_RUNNING_IN_CONTAINER", "false").lower() == "true"
+    url_key = os.environ.get("LOCATION", "kantine").lower()
+    if url_key not in URL_MAPPING:
+        raise ValueError(
+            f"Invalid LOCATION '{url_key}' provided. Valid options are: {list(URL_MAPPING.keys())}")
 
     tracks = get_event_date_details_for_url(
-        LOCATION_URL.KANTINE_PROGRAM_URL.value)
+        URL_MAPPING[url_key])
 
     generator = SpotifyPlaylistGenerator(
         playlist_name,
@@ -30,6 +31,9 @@ def main():
 
 
 if __name__ == "__main__":
+    logging.basicConfig()
+    logging.getLogger().setLevel(logging.INFO)
+
     try:
         main()
     except Exception as e:
