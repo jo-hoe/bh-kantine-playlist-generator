@@ -1,18 +1,24 @@
 import os
 import logging
 import sys
+from dotenv import load_dotenv
 
 from app.crawler import URL_MAPPING, get_event_date_details_for_url
 from app.playlist.spotify_playlist_generator import SpotifyPlaylistGenerator
 
 
 def main():
+    # Load environment variables from .env file if not in Docker
+    is_running_in_container = os.environ.get(
+        "IS_RUNNING_IN_CONTAINER", "false").lower() == "true"
+    
+    if not is_running_in_container:
+        load_dotenv()
+    
     playlist_name = os.environ.get(
         "PLAYLIST_NAME", "Kantine Am Berghain: Next Up")
     max_track_number_per_artist = int(
         os.environ.get("MAX_TRACK_NUMBER_PER_ARTIST", 3))
-    is_running_in_container = os.environ.get(
-        "IS_RUNNING_IN_CONTAINER", "false").lower() == "true"
     url_key = os.environ.get("LOCATION", "kantine").lower()
     if url_key not in URL_MAPPING:
         raise ValueError(

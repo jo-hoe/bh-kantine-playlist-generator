@@ -1,0 +1,17 @@
+apiVersion: k3d.io/v1alpha5
+kind: Simple
+metadata:
+  name: bh-playlist-generator-cluster # (will still be prefixed with `k3d-`)
+kubeAPI: # same as `--api-port myhost.my.domain:6445` (where the name would resolve to 127.0.0.1)
+  # setting port and IP on Windows explicitly as the default k3d port does lead to kubectl not being able to connect
+  hostIP: "127.0.0.1"
+  hostPort: "6551"
+registries: # define how registries should be created or used
+  create: # creates a default registry to be used with the cluster; same as `--registry-create registry.localhost`
+    name: registry.localhost
+    host: "0.0.0.0"
+    hostPort: "5001"
+volumes:
+  - volume: ${PWD}/cache:/main/spotify/cache # mount host path for spotify cache
+    nodeFilters:
+      - server:0

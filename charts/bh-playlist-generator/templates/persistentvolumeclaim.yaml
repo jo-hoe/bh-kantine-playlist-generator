@@ -11,3 +11,4 @@ spec:
     requests:
       storage: {{ .Values.persistentVolumeClaim.capacity }}
   volumeName: {{ .Values.persistentVolume.name }}
+  storageClassName: ""

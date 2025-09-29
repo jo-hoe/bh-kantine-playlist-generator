@@ -13,6 +13,9 @@ spec:
           labels:
             {{- include "cronjob.selectorLabels" . | nindent 12 }}
         spec:
+          activeDeadlineSeconds: {{ .Values.cronjob.activeDeadlineSeconds }}
+          failedJobsHistoryLimit: {{ .Values.cronjob.failedJobsHistoryLimit }}
+          successfulJobsHistoryLimit: {{ .Values.cronjob.successfulJobsHistoryLimit }}
           restartPolicy: {{ .Values.cronjob.restartPolicy }}
           securityContext:
             fsGroup: 1000

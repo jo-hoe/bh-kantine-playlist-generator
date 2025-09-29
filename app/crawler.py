@@ -11,8 +11,8 @@ ITEM_DETAIL_XPATH = '//span[@class="font-bold"]'
 
 
 URL_MAPPING = {
-    "Kantine": HOST_URL + "/de/program/kantine-am-berghain/",
-    "Klub": HOST_URL + "/de/program/"
+    "kantine": HOST_URL + "/de/program/kantine-am-berghain/",
+    "klub": HOST_URL + "/de/program/"
 }
 
 

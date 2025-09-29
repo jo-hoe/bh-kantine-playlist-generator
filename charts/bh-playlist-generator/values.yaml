@@ -1,27 +1,49 @@
 # Default values for bh-playlist-generator.
 
 # Secret configuration
+# SECURITY NOTE: Do not set actual secrets here! Use one of these secure methods:
+# 1. Helm Secrets: helm secrets upgrade <release> . -f secrets.yaml
+# 2. External Secrets Operator: Create ExternalSecret resource
+# 3. Sealed Secrets: Use kubeseal to encrypt secrets
+# 4. Kubernetes native: kubectl create secret generic spotify-credentials --from-literal=...
 secret:
   data:
+    # -- Spotify application client ID for API authentication. NEVER commit real values to git!
     spotifyClientId: "your-spotify-client-id"
+    # -- Spotify application client secret for API authentication. NEVER commit real values to git!
     spotifyClientSecret: "your-spotify-client-secret"
+    # -- Spotify OAuth redirect URI for authentication flow. Example: http://localhost:9090/callback
     spotifyRedirectUri: "your-spotify-redirect-uri"
+
+# Configuration for environment variables
+config:
+  # -- Name of the Spotify playlist to update
+  playlistName: "Kantine Am Berghain: Next Up"
+  # -- Maximum number of tracks to add per artist to avoid playlist domination
+  maxTrackNumberPerArtist: "3"
+  # -- Location/venue to crawl for events (case-sensitive: 'Kantine' or 'Klub')
+  location: "Kantine"
 
 # CronJob configuration
 cronjob:
   name: bh-playlist-generator
-  schedule: "0 9 * * *"  # Daily at 9 AM
+  # -- default is daily at 4 AM
+  schedule: "0 4 * * *"
   image:
     repository: bh-playlist-generator
     tag: latest
     pullPolicy: IfNotPresent
   restartPolicy: OnFailure
+  activeDeadlineSeconds: 3600
+  failedJobsHistoryLimit: 1
+  successfulJobsHistoryLimit: 3
   
 # Persistent Volume configuration
 persistentVolume:
   name: spotify-cache-pv
   capacity: 1Gi
   accessMode: ReadWriteOnce
+  # -- Host path on k3d node where Spotify token cache will be stored
   hostPath: /main/spotify/cache
   type: DirectoryOrCreate
 
@@ -30,12 +52,6 @@ persistentVolumeClaim:
   name: spotify-cache-pvc
   capacity: 1Gi
   accessMode: ReadWriteOnce
-
-# Configuration for environment variables
-config:
-  playlistName: "Kantine Am Berghain: Next Up"
-  maxTrackNumberPerArtist: "3"
-  location: "Kantine"
 
 # Common labels
 labels:
