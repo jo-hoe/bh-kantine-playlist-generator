@@ -1,0 +1,42 @@
+# Default values for bh-playlist-generator.
+
+# Secret configuration
+secret:
+  data:
+    spotifyClientId: "your-spotify-client-id"
+    spotifyClientSecret: "your-spotify-client-secret"
+    spotifyRedirectUri: "your-spotify-redirect-uri"
+
+# CronJob configuration
+cronjob:
+  name: bh-playlist-generator
+  schedule: "0 9 * * *"  # Daily at 9 AM
+  image:
+    repository: bh-playlist-generator
+    tag: latest
+    pullPolicy: IfNotPresent
+  restartPolicy: OnFailure
+  
+# Persistent Volume configuration
+persistentVolume:
+  name: spotify-cache-pv
+  capacity: 1Gi
+  accessMode: ReadWriteOnce
+  hostPath: /main/spotify/cache
+  type: DirectoryOrCreate
+
+# Persistent Volume Claim configuration
+persistentVolumeClaim:
+  name: spotify-cache-pvc
+  capacity: 1Gi
+  accessMode: ReadWriteOnce
+
+# Configuration for environment variables
+config:
+  playlistName: "Kantine Am Berghain: Next Up"
+  maxTrackNumberPerArtist: "3"
+  location: "Kantine"
+
+# Common labels
+labels:
+  app: bh-playlist-generator

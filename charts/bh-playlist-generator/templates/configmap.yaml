@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "cronjob.fullname" . }}-config
+  labels:
+    {{- include "cronjob.labels" . | nindent 4 }}
+data:
+  IS_RUNNING_IN_CONTAINER: "true"
+  PLAYLIST_NAME: {{ .Values.config.playlistName | quote }}
+  MAX_TRACK_NUMBER_PER_ARTIST: {{ .Values.config.maxTrackNumberPerArtist | quote }}
+  LOCATION: {{ .Values.config.location | quote }}

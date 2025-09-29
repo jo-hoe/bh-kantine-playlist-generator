@@ -1,0 +1,40 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: {{ include "cronjob.fullname" . }}
+  labels:
+    {{- include "cronjob.labels" . | nindent 4 }}
+spec:
+  schedule: {{ .Values.cronjob.schedule | quote }}
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          labels:
+            {{- include "cronjob.selectorLabels" . | nindent 12 }}
+        spec:
+          restartPolicy: {{ .Values.cronjob.restartPolicy }}
+          securityContext:
+            fsGroup: 1000
+          containers:
+          - name: {{ .Chart.Name }}
+            image: "{{ .Values.cronjob.image.repository }}:{{ .Values.cronjob.image.tag }}"
+            imagePullPolicy: {{ .Values.cronjob.image.pullPolicy }}
+            securityContext:
+              runAsUser: 1000
+              runAsGroup: 1000
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: false
+            envFrom:
+            - secretRef:
+                name: spotify-credentials
+            - configMapRef:
+                name: {{ include "cronjob.fullname" . }}-config
+            volumeMounts:
+            - name: token-cache
+              mountPath: /app/cache
+              readOnly: false
+          volumes:
+          - name: token-cache
+            persistentVolumeClaim:
+              claimName: {{ .Values.persistentVolumeClaim.name }}
