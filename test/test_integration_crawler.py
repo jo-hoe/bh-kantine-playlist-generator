@@ -6,10 +6,10 @@ from app.crawler import get_event_date_details_for_url, URL_MAPPING
 class TestIntegrationCrawler(unittest.TestCase):
 
     def test_get_event_date_details_for_kantine(self):
-        self.get_event_date_details_for_url("Kantine")
+        self.get_event_date_details_for_url("kantine")
 
     def test_get_event_date_details_for_klub(self):
-        self.get_event_date_details_for_url("Klub")
+        self.get_event_date_details_for_url("klub")
 
     def get_event_date_details_for_url(self, key: str):
         items = get_event_date_details_for_url(URL_MAPPING[key])
