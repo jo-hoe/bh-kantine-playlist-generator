@@ -30,7 +30,7 @@ cronjob:
   # -- default is daily at 4 AM
   schedule: "0 4 * * *"
   image:
-    repository: bh-playlist-generator
+    repository: ghcr.io/jo-hoe/bh-kantine-playlist-generator
     tag: latest
     pullPolicy: IfNotPresent
   restartPolicy: OnFailure

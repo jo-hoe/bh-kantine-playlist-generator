@@ -1,6 +1,6 @@
 # bh-playlist-generator
 
-![Version: 1.0.2](https://img.shields.io/badge/Version-1.0.2-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.2.0](https://img.shields.io/badge/AppVersion-1.2.0-informational?style=flat-square)
+![Version: 1.0.3](https://img.shields.io/badge/Version-1.0.3-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.2.0](https://img.shields.io/badge/AppVersion-1.2.0-informational?style=flat-square)
 
 A Helm chart for BH Kantine Playlist Generator
 
@@ -14,7 +14,7 @@ A Helm chart for BH Kantine Playlist Generator
 | cronjob.activeDeadlineSeconds | int | `3600` |  |
 | cronjob.failedJobsHistoryLimit | int | `1` |  |
 | cronjob.image.pullPolicy | string | `"IfNotPresent"` |  |
-| cronjob.image.repository | string | `"bh-playlist-generator"` |  |
+| cronjob.image.repository | string | `"ghcr.io/jo-hoe/bh-kantine-playlist-generator"` |  |
 | cronjob.image.tag | string | `"latest"` |  |
 | cronjob.name | string | `"bh-playlist-generator"` |  |
 | cronjob.restartPolicy | string | `"OnFailure"` |  |
