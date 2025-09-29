@@ -1,6 +1,6 @@
 # bh-playlist-generator
 
-![Version: 1.0.1](https://img.shields.io/badge/Version-1.0.1-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.2.0](https://img.shields.io/badge/AppVersion-1.2.0-informational?style=flat-square)
+![Version: 1.0.2](https://img.shields.io/badge/Version-1.0.2-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.2.0](https://img.shields.io/badge/AppVersion-1.2.0-informational?style=flat-square)
 
 A Helm chart for BH Kantine Playlist Generator
 
@@ -22,12 +22,12 @@ A Helm chart for BH Kantine Playlist Generator
 | cronjob.successfulJobsHistoryLimit | int | `3` |  |
 | labels.app | string | `"bh-playlist-generator"` |  |
 | persistentVolume.accessMode | string | `"ReadWriteOnce"` |  |
-| persistentVolume.capacity | string | `"1Gi"` |  |
+| persistentVolume.capacity | string | `"1Mi"` |  |
 | persistentVolume.hostPath | string | `"/main/spotify/cache"` | Host path on k3d node where Spotify token cache will be stored |
 | persistentVolume.name | string | `"spotify-cache-pv"` |  |
 | persistentVolume.type | string | `"DirectoryOrCreate"` |  |
 | persistentVolumeClaim.accessMode | string | `"ReadWriteOnce"` |  |
-| persistentVolumeClaim.capacity | string | `"1Gi"` |  |
+| persistentVolumeClaim.capacity | string | `"1Mi"` |  |
 | persistentVolumeClaim.name | string | `"spotify-cache-pvc"` |  |
 | secret.data.spotifyClientId | string | `"your-spotify-client-id"` | Spotify application client ID for API authentication. NEVER commit real values to git! |
 | secret.data.spotifyClientSecret | string | `"your-spotify-client-secret"` | Spotify application client secret for API authentication. NEVER commit real values to git! |
