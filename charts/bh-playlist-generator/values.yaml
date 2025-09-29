@@ -41,7 +41,7 @@ cronjob:
 # Persistent Volume configuration
 persistentVolume:
   name: spotify-cache-pv
-  capacity: 1Gi
+  capacity: 1Mi
   accessMode: ReadWriteOnce
   # -- Host path on k3d node where Spotify token cache will be stored
   hostPath: /main/spotify/cache
@@ -50,7 +50,7 @@ persistentVolume:
 # Persistent Volume Claim configuration
 persistentVolumeClaim:
   name: spotify-cache-pvc
-  capacity: 1Gi
+  capacity: 1Mi
   accessMode: ReadWriteOnce
 
 # Common labels
