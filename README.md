@@ -26,7 +26,8 @@ SPOTIFY_REDIRECT_URI=http://127.0.0.1:9090
 
 # Optional: Customize script behavior
 MAX_TRACK_NUMBER_PER_ARTIST=3
-PLAYLIST_NAME=Berghain Am Kantine: Next Up
+PLAYLIST_NAME=Kantine Am Berghain: Next Up
+LOCATION=kantine
 ```
 
 ### Environment Variables
@@ -36,8 +37,9 @@ PLAYLIST_NAME=Berghain Am Kantine: Next Up
 | `SPOTIFY_CLIENT_ID`          | Yes      | Spotify application client ID.                                                                                        | —                             |
 | `SPOTIFY_CLIENT_SECRET`      | Yes      | Spotify application client secret.                                                                                    | —                             |
 | `SPOTIFY_REDIRECT_URI`       | Yes      | Redirect URI configured in your Spotify app. Must be reachable; if running in Docker, ensure your host matches port. | Example: `http://127.0.0.1:9090` |
-| `PLAYLIST_NAME`              | No       | Name of the Spotify playlist to create or update.                                                                     | `Berghain Am Kantine: Next Up` |
+| `PLAYLIST_NAME`              | No       | Name of the Spotify playlist to create or update.                                                                     | `Kantine Am Berghain: Next Up` |
 | `MAX_TRACK_NUMBER_PER_ARTIST`| No       | Maximum number of top tracks to add per artist.                                                                       | `3`                           |
+| `LOCATION`                   | No       | Location to scrape events from. Valid options: `kantine`, `klub`                                                      | `kantine`                     |
 
 ## Usage
 
