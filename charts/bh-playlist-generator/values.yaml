@@ -21,8 +21,8 @@ config:
   playlistName: "Kantine Am Berghain: Next Up"
   # -- Maximum number of tracks to add per artist to avoid playlist domination
   maxTrackNumberPerArtist: "3"
-  # -- Location/venue to crawl for events (case-sensitive: 'Kantine' or 'Klub')
-  location: "Kantine"
+  # -- Location/venue to crawl for events ('kantine' or 'klub')
+  location: "kantine"
 
 # CronJob configuration
 cronjob:

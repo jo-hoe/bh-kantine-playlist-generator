@@ -1,6 +1,6 @@
 # bh-playlist-generator
 
-![Version: 1.0.0](https://img.shields.io/badge/Version-1.0.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.2.0](https://img.shields.io/badge/AppVersion-1.2.0-informational?style=flat-square)
+![Version: 1.0.1](https://img.shields.io/badge/Version-1.0.1-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.2.0](https://img.shields.io/badge/AppVersion-1.2.0-informational?style=flat-square)
 
 A Helm chart for BH Kantine Playlist Generator
 
@@ -8,7 +8,7 @@ A Helm chart for BH Kantine Playlist Generator
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
-| config.location | string | `"Kantine"` | Location/venue to crawl for events (case-sensitive: 'Kantine' or 'Klub') |
+| config.location | string | `"kantine"` | Location/venue to crawl for events ('kantine' or 'klub') |
 | config.maxTrackNumberPerArtist | string | `"3"` | Maximum number of tracks to add per artist to avoid playlist domination |
 | config.playlistName | string | `"Kantine Am Berghain: Next Up"` | Name of the Spotify playlist to update |
 | cronjob.activeDeadlineSeconds | int | `3600` |  |
