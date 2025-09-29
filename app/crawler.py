@@ -1,13 +1,18 @@
 from datetime import datetime
+from enum import Enum
 import logging
 from cloudscraper import create_scraper
 from lxml import html as lxml_html
 
 HOST_URL = "https://www.berghain.berlin"
-KANTINE_PROGRAM_URL = HOST_URL + "/de/program/kantine-am-berghain/"
 
 EVENT_ITEM_XPATH = '//a[starts-with(@href, "/de/event/")]'
 ITEM_DETAIL_XPATH = '//span[@class="font-bold"]'
+
+
+class LOCATION_URL(Enum):
+    KANTINE_PROGRAM_URL = HOST_URL + "/de/program/kantine-am-berghain/"
+    KLUB_PROGRAM_URL = HOST_URL + "/de/program/"
 
 
 def get_event_date_details_for_url(url: str) -> list[tuple[datetime, str]]:

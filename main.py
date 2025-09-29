@@ -2,7 +2,7 @@ import os
 import logging
 import sys
 
-from app.crawler import get_event_date_details_for_url, KANTINE_PROGRAM_URL
+from app.crawler import LOCATION_URL, get_event_date_details_for_url
 from app.playlist.spotify_playlist_generator import SpotifyPlaylistGenerator
 
 
@@ -17,7 +17,8 @@ def main():
     is_running_in_container = os.environ.get(
         "IS_RUNNING_IN_CONTAINER", "false").lower() == "true"
 
-    tracks = get_event_date_details_for_url(KANTINE_PROGRAM_URL)
+    tracks = get_event_date_details_for_url(
+        LOCATION_URL.KANTINE_PROGRAM_URL.value)
 
     generator = SpotifyPlaylistGenerator(
         playlist_name,
