@@ -30,7 +30,7 @@ spec:
               readOnlyRootFilesystem: false
             envFrom:
             - secretRef:
-                name: spotify-credentials
+                name: {{ .Values.secret.name }}
             - configMapRef:
                 name: {{ include "cronjob.fullname" . }}-config
             volumeMounts:
