@@ -11,10 +11,12 @@ def main():
     # Load environment variables from .env file if not in Docker
     is_running_in_container = os.environ.get(
         "IS_RUNNING_IN_CONTAINER", "false").lower() == "true"
-    
+
     if not is_running_in_container:
         load_dotenv()
-    
+
+    token_cache_path = os.environ.get(
+        "TOKEN_CACHE_FILE_PATH", os.path.join("cache", "token_cache.txt"))
     playlist_name = os.environ.get(
         "PLAYLIST_NAME", "Kantine Am Berghain: Next Up")
     max_track_number_per_artist = int(
@@ -30,7 +32,7 @@ def main():
     generator = SpotifyPlaylistGenerator(
         playlist_name,
         max_track_number_per_artist,
-        os.path.join("cache", "token_cache.txt"),
+        token_cache_path,
         is_running_in_container)
 
     generator.process(tracks)

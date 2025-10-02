@@ -16,20 +16,21 @@ secret:
     # -- Spotify OAuth redirect URI for authentication flow. Example: http://localhost:9090/callback
     spotifyRedirectUri: "your-spotify-redirect-uri"
 
-# Configuration for environment variables
-config:
-  # -- Name of the Spotify playlist to update
-  playlistName: "Kantine Am Berghain: Next Up"
-  # -- Maximum number of tracks to add per artist to avoid playlist domination
-  maxTrackNumberPerArtist: "3"
-  # -- Location/venue to crawl for events ('kantine' or 'klub')
-  location: "kantine"
-
-# CronJob configuration
+# -- Jobs configuration: define one or more jobs with independent schedule and settings
+jobs:
+  - name: default
+    # -- Cron schedule for this job. If omitted, defaults to "0 4 * * *"
+    schedule: "0 4 * * *"
+    # -- Name of the Spotify playlist to update
+    playlistName: "Kantine Am Berghain: Next Up"
+    # -- Maximum number of tracks to add per artist to avoid playlist domination
+    maxTrackNumberPerArtist: "3"
+    # -- Location/venue to crawl for events ('kantine' or 'klub')
+    location: "kantine"
+  
+# -- CronJob configuration (global settings applied to all jobs)
+# -- NOTE: Per-job scheduling is configured via jobs[].schedule. If omitted, defaults to "0 4 * * *".
 cronjob:
-  name: bh-playlist-generator
-  # -- default is daily at 4 AM
-  schedule: "0 4 * * *"
   image:
     repository: ghcr.io/jo-hoe/bh-kantine-playlist-generator
     tag: latest
@@ -38,6 +39,9 @@ cronjob:
   activeDeadlineSeconds: 3600
   failedJobsHistoryLimit: 1
   successfulJobsHistoryLimit: 3
+
+# -- Path inside the container where the Spotify token cache file will be stored
+cacheFilePath: /app/cache/token_cache.txt
   
 # Persistent Volume configuration
 persistentVolume:
