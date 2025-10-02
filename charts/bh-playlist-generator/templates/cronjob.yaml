@@ -1,28 +1,33 @@
+{{- range .Values.jobs }}
+{{- $nameSuffix := "" -}}
+{{- if gt (len $.Values.jobs) 1 -}}
+{{- $nameSuffix = printf "-%s" .name -}}
+{{- end -}}
 apiVersion: batch/v1
 kind: CronJob
 metadata:
-  name: {{ include "cronjob.fullname" . }}
+  name: {{ include "cronjob.fullname" $ }}{{ $nameSuffix }}
   labels:
-    {{- include "cronjob.labels" . | nindent 4 }}
+    {{- include "cronjob.labels" $ | nindent 4 }}
 spec:
-  schedule: {{ .Values.cronjob.schedule | quote }}
+  schedule: {{ default "0 4 * * *" .schedule | quote }}
+  successfulJobsHistoryLimit: {{ $.Values.cronjob.successfulJobsHistoryLimit }}
+  failedJobsHistoryLimit: {{ $.Values.cronjob.failedJobsHistoryLimit }}
   jobTemplate:
     spec:
       template:
         metadata:
           labels:
-            {{- include "cronjob.selectorLabels" . | nindent 12 }}
+            {{- include "cronjob.selectorLabels" $ | nindent 12 }}
         spec:
-          activeDeadlineSeconds: {{ .Values.cronjob.activeDeadlineSeconds }}
-          failedJobsHistoryLimit: {{ .Values.cronjob.failedJobsHistoryLimit }}
-          successfulJobsHistoryLimit: {{ .Values.cronjob.successfulJobsHistoryLimit }}
-          restartPolicy: {{ .Values.cronjob.restartPolicy }}
+          activeDeadlineSeconds: {{ $.Values.cronjob.activeDeadlineSeconds }}
+          restartPolicy: {{ $.Values.cronjob.restartPolicy }}
           securityContext:
             fsGroup: 1000
           containers:
-          - name: {{ .Chart.Name }}
-            image: "{{ .Values.cronjob.image.repository }}:{{ .Values.cronjob.image.tag }}"
-            imagePullPolicy: {{ .Values.cronjob.image.pullPolicy }}
+          - name: {{ $.Chart.Name }}
+            image: "{{ $.Values.cronjob.image.repository }}:{{ $.Values.cronjob.image.tag }}"
+            imagePullPolicy: {{ $.Values.cronjob.image.pullPolicy }}
             securityContext:
               runAsUser: 1000
               runAsGroup: 1000
@@ -30,9 +35,9 @@ spec:
               readOnlyRootFilesystem: false
             envFrom:
             - secretRef:
-                name: {{ .Values.secret.name }}
+                name: {{ $.Values.secret.name }}
             - configMapRef:
-                name: {{ include "cronjob.fullname" . }}-config
+                name: {{ include "cronjob.fullname" $ }}-config{{ $nameSuffix }}
             volumeMounts:
             - name: token-cache
               mountPath: /app/cache
@@ -40,4 +45,6 @@ spec:
           volumes:
           - name: token-cache
             persistentVolumeClaim:
-              claimName: {{ .Values.persistentVolumeClaim.name }}
+              claimName: {{ $.Values.persistentVolumeClaim.name }}
+---
+{{- end }}

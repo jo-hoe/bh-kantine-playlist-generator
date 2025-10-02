@@ -1,11 +1,15 @@
+{{- $multiple := gt (len $.Values.jobs) 1 -}}
+{{- range $.Values.jobs }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: {{ include "cronjob.fullname" . }}-config
+  name: {{ include "cronjob.fullname" $ }}-config{{ ternary (printf "-%s" .name) "" $multiple }}
   labels:
-    {{- include "cronjob.labels" . | nindent 4 }}
+    {{- include "cronjob.labels" $ | nindent 4 }}
 data:
   IS_RUNNING_IN_CONTAINER: "true"
-  PLAYLIST_NAME: {{ .Values.config.playlistName | quote }}
-  MAX_TRACK_NUMBER_PER_ARTIST: {{ .Values.config.maxTrackNumberPerArtist | quote }}
-  LOCATION: {{ .Values.config.location | quote }}
+  PLAYLIST_NAME: {{ .playlistName | quote }}
+  MAX_TRACK_NUMBER_PER_ARTIST: {{ .maxTrackNumberPerArtist | quote }}
+  LOCATION: {{ .location | quote }}
+---
+{{- end }}
