@@ -1,9 +1,9 @@
-{{- range .Values.jobs }}
-{{- $nameSuffix := "" -}}
-{{- if gt (len $.Values.jobs) 1 -}}
-{{- $nameSuffix = printf "-%s" .name -}}
-{{- end -}}
+{{- $multiple := gt (len $.Values.jobs) 1 -}}
+{{- range $index, $job := $.Values.jobs }}
+{{- $nameSuffix := ternary (printf "-%s" $job.name) "" $multiple -}}
+{{- if gt $index 0 }}
 ---
+{{- end }}
 apiVersion: batch/v1
 kind: CronJob
 metadata:
@@ -11,7 +11,7 @@ metadata:
   labels:
     {{- include "cronjob.labels" $ | nindent 4 }}
 spec:
-  schedule: {{ default "0 4 * * *" .schedule | quote }}
+  schedule: {{ default "0 4 * * *" $job.schedule | quote }}
   successfulJobsHistoryLimit: {{ $.Values.cronjob.successfulJobsHistoryLimit }}
   failedJobsHistoryLimit: {{ $.Values.cronjob.failedJobsHistoryLimit }}
   jobTemplate:
