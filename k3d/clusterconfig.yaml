@@ -11,7 +11,4 @@ registries: # define how registries should be created or used
     name: registry.localhost
     host: "0.0.0.0"
     hostPort: "5001"
-volumes:
-  - volume: ${PWD}/cache:/main/spotify/cache # mount host path for spotify cache
-    nodeFilters:
-      - server:0
+# Volume mount for Spotify cache is injected via Makefile using --volume to avoid hardcoded absolute paths on Windows.

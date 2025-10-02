@@ -3,6 +3,7 @@
 {{- if gt (len $.Values.jobs) 1 -}}
 {{- $nameSuffix = printf "-%s" .name -}}
 {{- end -}}
+---
 apiVersion: batch/v1
 kind: CronJob
 metadata:
@@ -40,11 +41,10 @@ spec:
                 name: {{ include "cronjob.fullname" $ }}-config{{ $nameSuffix }}
             volumeMounts:
             - name: token-cache
-              mountPath: /app/cache
+              mountPath: {{ dir $.Values.cacheFilePath | quote }}
               readOnly: false
           volumes:
           - name: token-cache
             persistentVolumeClaim:
               claimName: {{ $.Values.persistentVolumeClaim.name }}
----
 {{- end }}

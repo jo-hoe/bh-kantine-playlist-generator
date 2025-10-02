@@ -27,7 +27,7 @@ jobs:
     maxTrackNumberPerArtist: "3"
     # -- Location/venue to crawl for events ('kantine' or 'klub')
     location: "kantine"
-
+  
 # -- CronJob configuration (global settings applied to all jobs)
 # -- NOTE: Per-job scheduling is configured via jobs[].schedule. If omitted, defaults to "0 4 * * *".
 cronjob:
@@ -39,6 +39,9 @@ cronjob:
   activeDeadlineSeconds: 3600
   failedJobsHistoryLimit: 1
   successfulJobsHistoryLimit: 3
+
+# -- Path inside the container where the Spotify token cache file will be stored
+cacheFilePath: /app/cache/token_cache.txt
   
 # Persistent Volume configuration
 persistentVolume:

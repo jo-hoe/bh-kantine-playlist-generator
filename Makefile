@@ -28,8 +28,8 @@ save-dependencies: ## save current dependencies
 	"${PYTHON_DIR}pip" list --not-required --format=freeze | grep -v "pip" > "${ROOT_DIR}requirements.txt"
 
 .PHONY: start-cluster
-start-cluster: ## starts k3d cluster and registry
-	@k3d cluster create --config ${ROOT_DIR}k3d/clusterconfig.yaml
+start-cluster: ## starts k3d cluster and registry (injects host cache volume)
+	@python ${ROOT_DIR}k3d/deploy-k3d.py --create-cluster
 
 .PHONY: start-k3d
 start-k3d: start-cluster push-k3d ## start k3d cluster and deploy chart
