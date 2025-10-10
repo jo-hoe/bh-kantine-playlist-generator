@@ -33,16 +33,16 @@ def get_event_date_details_for_url(url: str) -> list[tuple[datetime, str]]:
 
         if len(details) < 2:
             logging.warning(
-                f"No details found for event with url: {url}. Required at least date and one artist and found {len(details)} items.")
-            return []
+                f"Insufficient details found for event with url: {get_link(item)}. Required at least date and one artist but found {len(details)} items.")
+            continue
 
         date_str = details[0].text_content().strip()
         try:
             event_date = datetime.strptime(date_str, "%d.%m.%Y")
         except ValueError as e:
             logging.error(
-                f"Error parsing date '{date_str}' from event with url: {item.href}. Error: {e}")
-            return []
+                f"Error parsing date '{date_str}' from event with url: {get_link(item)}. Error: {e}")
+            continue
 
         for detail in details[1:]:
             # dot is added to ensure relative (sub)xpath from the current item
@@ -56,6 +56,16 @@ def get_event_date_details_for_url(url: str) -> list[tuple[datetime, str]]:
                     result.append((event_date, artist_name))
                 else:
                     logging.info(
-                        f"Found 'LIVE' tag but no artist name in event with url: {item.href}")
+                        f"Found 'LIVE' tag but no artist name in event with url: {get_link(item)}")
+
+    return result
+
+
+def get_link(item) -> str:
+    result = "N/A"
+    link_path = item.xpath("./@href")
+
+    if len(link_path) > 0:
+        result = f"{HOST_URL}{link_path[0]}"
 
     return result
