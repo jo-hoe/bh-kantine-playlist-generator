@@ -108,16 +108,21 @@ class SpotifyPlaylistGenerator(AbstractPlaylistGenerator):
     def _clear_playlist(self, playlist_id: str) -> bool:
         # Clears all tracks from the playlist
         client = self._get_spotify_client()
+        running_count = 0
         try:
             while True:
                 response = client.playlist_tracks(
                     playlist_id, limit=self.TRACK_ID_LIMIT)
                 items = response.get('items', [])
+
                 if not items:
                     break
+
                 client.playlist_remove_all_occurrences_of_items(
                     playlist_id, [item['track']['id'] for item in items])
-            logging.info(f"Playlist with ID: {playlist_id} cleared.")
+                running_count += len(items)
+
+            logging.info(f"Removed {running_count} of playlist with ID {playlist_id}.")
             return True
         except Exception as e:
             logging.error(

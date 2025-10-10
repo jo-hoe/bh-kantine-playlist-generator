@@ -23,11 +23,13 @@ Create a `.env` file in the root of the project with the following content:
 SPOTIFY_CLIENT_ID=your_client_id
 SPOTIFY_CLIENT_SECRET=your_client_secret
 SPOTIFY_REDIRECT_URI=http://127.0.0.1:9090
+TOKEN_CACHE_FILE_PATH=cache\token_cache.txt
 
 # Optional: Customize script behavior
 MAX_TRACK_NUMBER_PER_ARTIST=3
 PLAYLIST_NAME=Kantine Am Berghain: Next Up
 LOCATION=kantine
+IS_RUNNING_IN_CONTAINER=false
 ```
 
 ### Environment Variables
@@ -40,6 +42,8 @@ LOCATION=kantine
 | `PLAYLIST_NAME`              | No       | Name of the Spotify playlist to create or update.                                                                     | `Kantine Am Berghain: Next Up` |
 | `MAX_TRACK_NUMBER_PER_ARTIST`| No       | Maximum number of top tracks to add per artist.                                                                       | `3`                           |
 | `LOCATION`                   | No       | Location to scrape events from. Valid options: `kantine`, `klub`                                                      | `kantine`                     |
+| `TOKEN_CACHE_FILE_PATH`      | No       | Path to the file where Spotify authentication tokens are cached.                                                      | `cache/token_cache.txt`       |
+| `IS_RUNNING_IN_CONTAINER`    | No       | Set to `true` when running in Docker to disable automatic browser opening for OAuth.                                  | `false`                       |
 
 ## Usage
 
