@@ -5,6 +5,7 @@ from cloudscraper import create_scraper
 from lxml import html as lxml_html
 
 HOST_URL = "https://www.berghain.berlin"
+PAGE_MODIFIER = "?page="
 
 EVENT_ITEM_XPATH = '//a[starts-with(@href, "/de/event/")]'
 ITEM_DETAIL_XPATH = '//span[@class="font-bold"]'
@@ -17,6 +18,35 @@ URL_MAPPING = {
 
 
 def get_event_date_details_for_url(url: str) -> list[tuple[datetime, str]]:
+    page_number = 1
+    all_events = list[tuple[datetime, str]]()
+
+    while True:
+        old_events_count = len(all_events)
+
+        events_from_page = parse_page_page(f"{url}{PAGE_MODIFIER}{page_number}")
+        page_number += 1
+        if not events_from_page or len(events_from_page) == 0:
+            break
+
+        # only add new items which are not already in the list
+        for event in events_from_page:
+            if event not in all_events:
+                all_events.append(event)
+
+        # break if no new items were added
+        if len(all_events) == old_events_count:
+            break
+
+        if page_number > 99:
+            logging.warning(
+                f"More than 99 pages found for URL: {url}. Stopping further processing to avoid excessive load.")
+            break
+
+    return all_events
+
+
+def parse_page_page(url: str) -> list[tuple[datetime, str]]:
     scraper = create_scraper()
     page = scraper.get(url)
     tree = lxml_html.fromstring(page.content)
