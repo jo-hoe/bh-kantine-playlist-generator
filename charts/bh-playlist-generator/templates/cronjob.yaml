@@ -27,7 +27,7 @@ spec:
             fsGroup: 1000
           containers:
           - name: {{ $.Chart.Name }}
-            image: "{{ $.Values.cronjob.image.repository }}:{{ $.Values.cronjob.image.tag }}"
+            image: "{{ $.Values.cronjob.image.repository }}:{{ $.Values.cronjob.image.tag | default $.Chart.AppVersion }}"
             imagePullPolicy: {{ $.Values.cronjob.image.pullPolicy }}
             securityContext:
               runAsUser: 1000

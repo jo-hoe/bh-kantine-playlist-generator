@@ -33,7 +33,6 @@ jobs:
 cronjob:
   image:
     repository: ghcr.io/jo-hoe/bh-kantine-playlist-generator
-    tag: latest
     pullPolicy: IfNotPresent
   restartPolicy: OnFailure
   activeDeadlineSeconds: 3600
