@@ -35,7 +35,10 @@ def main():
         token_cache_path,
         is_running_in_container)
 
-    generator.process(tracks)
+    success = generator.process(tracks)
+
+    if not success:
+        raise RuntimeError("Failed to update the playlist.")
 
 
 if __name__ == "__main__":
