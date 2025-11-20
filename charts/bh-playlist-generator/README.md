@@ -1,6 +1,6 @@
 # bh-playlist-generator
 
-![Version: 2.0.4](https://img.shields.io/badge/Version-2.0.4-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.3.3](https://img.shields.io/badge/AppVersion-1.3.3-informational?style=flat-square)
+![Version: 2.0.1](https://img.shields.io/badge/Version-2.0.1-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.3.3](https://img.shields.io/badge/AppVersion-1.3.3-informational?style=flat-square)
 
 A Helm chart for BH Kantine Playlist Generator
 
@@ -24,6 +24,7 @@ A Helm chart for BH Kantine Playlist Generator
 | persistentVolumeClaim.accessMode | string | `"ReadWriteOnce"` |  |
 | persistentVolumeClaim.capacity | string | `"1Mi"` |  |
 | persistentVolumeClaim.name | string | `"spotify-cache-pvc"` |  |
+| podLabels | object | `{}` | Additional labels to add to the cronjob pods (optional) podLabels:   environment: production   team: platform |
 | secret.data.spotifyClientId | string | `"your-spotify-client-id"` | Spotify application client ID for API authentication. NEVER commit real values to git! |
 | secret.data.spotifyClientSecret | string | `"your-spotify-client-secret"` | Spotify application client secret for API authentication. NEVER commit real values to git! |
 | secret.data.spotifyRedirectUri | string | `"your-spotify-redirect-uri"` | Spotify OAuth redirect URI for authentication flow. Example: http://localhost:9090/callback |

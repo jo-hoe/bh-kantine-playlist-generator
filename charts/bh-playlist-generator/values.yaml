@@ -60,3 +60,9 @@ persistentVolumeClaim:
 # Common labels
 labels:
   app: bh-playlist-generator
+
+# -- Additional labels to add to the cronjob pods (optional)
+# podLabels:
+#   environment: production
+#   team: platform
+podLabels: {}
