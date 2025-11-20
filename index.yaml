@@ -3,6 +3,16 @@ entries:
   bh-playlist-generator:
   - apiVersion: v2
     appVersion: 1.3.3
+    created: "2025-11-20T09:22:27.183476832Z"
+    description: A Helm chart for BH Playlist Generator
+    digest: 20b39b38d5deb8c11c10a90eacd4bc192432573cfd8af4a0b404e9938c7a91e6
+    name: bh-playlist-generator
+    type: application
+    urls:
+    - https://github.com/jo-hoe/bh-kantine-playlist-generator/releases/download/bh-playlist-generator-2.0.7/bh-playlist-generator-2.0.7.tgz
+    version: 2.0.7
+  - apiVersion: v2
+    appVersion: 1.3.3
     created: "2025-11-20T08:44:28.970103702Z"
     description: A Helm chart for BH Playlist Generator
     digest: d2d64695448c71cbc0163715ac9754c00fb4cdf05d78cacd8324b3b4b997ee8e
@@ -131,4 +141,4 @@ entries:
     urls:
     - https://github.com/jo-hoe/bh-kantine-playlist-generator/releases/download/bh-playlist-generator-1.0.0/bh-playlist-generator-1.0.0.tgz
     version: 1.0.0
-generated: "2025-11-20T08:44:28.970199611Z"
+generated: "2025-11-20T09:22:27.18357252Z"
