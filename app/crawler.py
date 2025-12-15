@@ -1,6 +1,7 @@
 from datetime import datetime
 from enum import Enum
 import logging
+import time
 from cloudscraper import create_scraper
 from lxml import html as lxml_html
 
@@ -46,10 +47,37 @@ def get_event_date_details_for_url(url: str) -> list[tuple[datetime, str]]:
     return all_events
 
 
-def parse_page_page(url: str) -> list[tuple[datetime, str]]:
+def parse_page_page(url: str, max_retries: int = 3, retry_delay: float = 1.0) -> list[tuple[datetime, str]]:
     scraper = create_scraper()
-    page = scraper.get(url)
-    tree = lxml_html.fromstring(page.content)
+    tree = None
+    
+    # Retry logic for HTTP requests
+    for attempt in range(max_retries):
+        try:
+            page = scraper.get(url, timeout=10)
+            
+            # Check if we got valid content
+            if not page.content or len(page.content) == 0:
+                raise ValueError("Received empty response from server")
+            
+            tree = lxml_html.fromstring(page.content)
+            break  # Success, exit retry loop
+            
+        except Exception as e:
+            if attempt < max_retries - 1:
+                logging.debug(
+                    f"Attempt {attempt + 1}/{max_retries} failed for URL: {url}. Error: {e}. Retrying in {retry_delay}s...")
+                time.sleep(retry_delay)
+                retry_delay *= 2  # Exponential backoff
+            else:
+                logging.debug(
+                    f"All {max_retries} attempts failed for URL: {url}. Last error: {e}")
+                return []  # Return empty list after all retries exhausted
+    
+    # If tree is still None after all retries, return empty list
+    if tree is None:
+        return []
+    
     event_items = tree.xpath(EVENT_ITEM_XPATH)
 
     result = []
