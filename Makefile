@@ -11,6 +11,10 @@ IMAGE_VERSION := "latest"
 venv:
 	@python -m venv ${ROOT_DIR}.venv
 
+.PHONY: test
+test: ## run all python tests
+	@python -m unittest discover -s ${ROOT_DIR}test -p "test_*.py"
+
 .PHONY: pull
 pull:
 	@git -C ${ROOT_DIR} pull
