@@ -7,3 +7,6 @@ services:
       - ${PWD}/cache/:/app/cache/
     env_file:
       - .env
+    environment:
+      - IS_RUNNING_IN_CONTAINER=true
+      - TOKEN_CACHE_FILE_PATH=/app/cache/token_cache.txt

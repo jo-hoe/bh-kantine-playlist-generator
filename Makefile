@@ -27,6 +27,10 @@ update: pull ## pulls git repo and installs all dependencies
 build: ## build docker image
 	@docker build -f ${ROOT_DIR}Dockerfile . -t ${IMAGE_NAME}
 
+.PHONY: start
+start: ## start application using docker compose
+	@docker compose up --build
+
 .PHONY: save-dependencies
 save-dependencies: ## save current dependencies
 	"${PYTHON_DIR}pip" list --not-required --format=freeze | grep -v "pip" > "${ROOT_DIR}requirements.txt"
