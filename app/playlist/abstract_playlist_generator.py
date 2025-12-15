@@ -51,7 +51,7 @@ class AbstractPlaylistGenerator(ABC):
             f"Using playlist ID: {playlist_id} for playlist name: {self._playlist_name}")
 
         all_track_ids = []
-        for performance_date, artist_name in artists_performance_dates:
+        for _, artist_name in artists_performance_dates:
             track_ids = self.get_top_tracks_for_artist(
                 artist_name, self._maximum_tracks_per_artist)
             if track_ids:
@@ -60,4 +60,10 @@ class AbstractPlaylistGenerator(ABC):
                 logging.warning(
                     f"No tracks found for artist: {artist_name}")
 
-        return self.update_playlist(playlist_id, all_track_ids)
+        # Filter out duplicates while preserving order
+        unique_track_ids = list(dict.fromkeys(all_track_ids))
+        duplicates_count = len(all_track_ids) - len(unique_track_ids)
+        if duplicates_count > 0:
+            logging.info(f"Filtered out {duplicates_count} duplicate track(s)")
+
+        return self.update_playlist(playlist_id, unique_track_ids)
