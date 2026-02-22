@@ -21,6 +21,8 @@ jobs:
   - name: default
     # -- Cron schedule for this job. If omitted, defaults to "0 4 * * *"
     schedule: "0 4 * * *"
+    # -- Optional timezone for this job's schedule evaluation. Example: "Europe/Berlin". If omitted, falls back to cronjob.timeZone or cluster default (UTC).
+    timeZone: ""
     # -- Name of the Spotify playlist to update
     playlistName: "Kantine Am Berghain: Next Up"
     # -- Maximum number of tracks to add per artist to avoid playlist domination
@@ -34,6 +36,9 @@ cronjob:
   image:
     repository: ghcr.io/jo-hoe/bh-kantine-playlist-generator
     pullPolicy: IfNotPresent
+  # -- Global timezone for CronJob schedule evaluation (e.g., "Europe/Berlin").
+  # -- If not set, uses cluster default (UTC). Can be overridden per job via jobs[].timeZone.
+  timeZone: ""
   restartPolicy: OnFailure
   activeDeadlineSeconds: 3600
   failedJobsHistoryLimit: 1

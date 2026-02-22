@@ -1,6 +1,7 @@
 {{- $multiple := gt (len $.Values.jobs) 1 -}}
 {{- range $index, $job := $.Values.jobs }}
 {{- $nameSuffix := ternary (printf "-%s" $job.name) "" $multiple -}}
+{{- $jobTimeZone := coalesce $job.timeZone $.Values.cronjob.timeZone -}}
 {{- if gt $index 0 }}
 ---
 {{- end }}
@@ -12,6 +13,9 @@ metadata:
     {{- include "cronjob.labels" $ | nindent 4 }}
 spec:
   schedule: {{ default "0 4 * * *" $job.schedule | quote }}
+{{- if $jobTimeZone }}
+  timeZone: {{ $jobTimeZone | quote }}
+{{- end }}
   successfulJobsHistoryLimit: {{ $.Values.cronjob.successfulJobsHistoryLimit }}
   failedJobsHistoryLimit: {{ $.Values.cronjob.failedJobsHistoryLimit }}
   jobTemplate:
@@ -47,6 +51,11 @@ spec:
                 name: {{ $.Values.secret.name }}
             - configMapRef:
                 name: {{ include "cronjob.fullname" $ }}-config{{ $nameSuffix }}
+{{- if $jobTimeZone }}
+            env:
+            - name: TZ
+              value: {{ $jobTimeZone | quote }}
+{{- end }}
             volumeMounts:
             - name: token-cache
               mountPath: {{ dir $.Values.cacheFilePath | quote }}
