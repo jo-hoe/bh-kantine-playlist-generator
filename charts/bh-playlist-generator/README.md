@@ -1,6 +1,6 @@
 # bh-playlist-generator
 
-![Version: 2.0.8](https://img.shields.io/badge/Version-2.0.8-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.3.4](https://img.shields.io/badge/AppVersion-1.3.4-informational?style=flat-square)
+![Version: 2.0.9](https://img.shields.io/badge/Version-2.0.9-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.3.5](https://img.shields.io/badge/AppVersion-1.3.5-informational?style=flat-square)
 
 A Helm chart for BH Playlist Generator
 
@@ -9,12 +9,14 @@ A Helm chart for BH Playlist Generator
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
 | cacheFilePath | string | `"/app/cache/token_cache.txt"` | Path inside the container where the Spotify token cache file will be stored |
-| cronjob | object | `{"activeDeadlineSeconds":3600,"failedJobsHistoryLimit":1,"image":{"pullPolicy":"IfNotPresent","repository":"ghcr.io/jo-hoe/bh-kantine-playlist-generator"},"restartPolicy":"OnFailure","successfulJobsHistoryLimit":3}` | NOTE: Per-job scheduling is configured via jobs[].schedule. If omitted, defaults to "0 4 * * *". |
-| jobs | list | `[{"location":"kantine","maxTrackNumberPerArtist":"3","name":"default","playlistName":"Kantine Am Berghain: Next Up","schedule":"0 4 * * *"}]` | Jobs configuration: define one or more jobs with independent schedule and settings |
+| cronjob | object | `{"activeDeadlineSeconds":3600,"failedJobsHistoryLimit":1,"image":{"pullPolicy":"IfNotPresent","repository":"ghcr.io/jo-hoe/bh-kantine-playlist-generator"},"restartPolicy":"OnFailure","successfulJobsHistoryLimit":3,"timeZone":""}` | NOTE: Per-job scheduling is configured via jobs[].schedule. If omitted, defaults to "0 4 * * *". |
+| cronjob.timeZone | string | `""` | If not set, uses cluster default (UTC). Can be overridden per job via jobs[].timeZone. |
+| jobs | list | `[{"location":"kantine","maxTrackNumberPerArtist":"3","name":"default","playlistName":"Kantine Am Berghain: Next Up","schedule":"0 4 * * *","timeZone":""}]` | Jobs configuration: define one or more jobs with independent schedule and settings |
 | jobs[0].location | string | `"kantine"` | Location/venue to crawl for events ('kantine' or 'klub') |
 | jobs[0].maxTrackNumberPerArtist | string | `"3"` | Maximum number of tracks to add per artist to avoid playlist domination |
 | jobs[0].playlistName | string | `"Kantine Am Berghain: Next Up"` | Name of the Spotify playlist to update |
 | jobs[0].schedule | string | `"0 4 * * *"` | Cron schedule for this job. If omitted, defaults to "0 4 * * *" |
+| jobs[0].timeZone | string | `""` | Optional timezone for this job's schedule evaluation. Example: "Europe/Berlin". If omitted, falls back to cronjob.timeZone or cluster default (UTC). |
 | labels.app | string | `"bh-playlist-generator"` |  |
 | persistentVolume.accessMode | string | `"ReadWriteOnce"` |  |
 | persistentVolume.capacity | string | `"1Mi"` |  |
