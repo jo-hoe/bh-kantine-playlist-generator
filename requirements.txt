@@ -1,5 +1,5 @@
 cloudscraper==1.2.71
 kubernetes==36.0.3
-lxml==6.1.0
+lxml==6.1.1
 python-dotenv==1.2.2
 spotipy==2.26.0
