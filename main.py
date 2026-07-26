@@ -17,6 +17,10 @@ def main():
 
     token_cache_path = os.environ.get(
         "TOKEN_CACHE_FILE_PATH", os.path.join("cache", "token_cache.txt"))
+    token_storage = os.environ.get("TOKEN_STORAGE", "file").lower()
+    token_secret_name = os.environ.get("TOKEN_SECRET_NAME", "spotify-token")
+    token_secret_key = os.environ.get("TOKEN_SECRET_KEY", "token_cache.json")
+    token_secret_namespace = os.environ.get("TOKEN_SECRET_NAMESPACE", "")
     playlist_name = os.environ.get(
         "PLAYLIST_NAME", "Kantine Am Berghain: Next Up")
     max_track_number_per_artist = int(
@@ -33,7 +37,11 @@ def main():
         playlist_name,
         max_track_number_per_artist,
         token_cache_path,
-        is_running_in_container)
+        is_running_in_container,
+        token_storage=token_storage,
+        token_secret_name=token_secret_name,
+        token_secret_key=token_secret_key,
+        token_secret_namespace=token_secret_namespace)
 
     success = generator.process(tracks)
 

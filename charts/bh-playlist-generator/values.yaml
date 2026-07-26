@@ -44,23 +44,23 @@ cronjob:
   failedJobsHistoryLimit: 1
   successfulJobsHistoryLimit: 3
 
-# -- Path inside the container where the Spotify token cache file will be stored
-cacheFilePath: /app/cache/token_cache.txt
-  
-# Persistent Volume configuration
-persistentVolume:
-  name: spotify-cache-pv
-  capacity: 1Mi
-  accessMode: ReadWriteOnce
-  # -- Host path on k3d node where Spotify token cache will be stored
-  hostPath: /main/spotify/cache
-  type: DirectoryOrCreate
+# -- ServiceAccount used by the cronjob pods. It is granted RBAC to read and
+# patch the token Secret so the pod can persist refreshed/rotated tokens.
+serviceAccount:
+  create: true
+  name: spotify-playlist-sa
 
-# Persistent Volume Claim configuration
-persistentVolumeClaim:
-  name: spotify-cache-pvc
-  capacity: 1Mi
-  accessMode: ReadWriteOnce
+# -- Kubernetes Secret that stores the Spotify OAuth token (as JSON).
+# Seed/re-seed it with: make seed-token  (or scripts/seed-token.py). See doc/token-seeding.md.
+tokenSecret:
+  # -- Create an empty placeholder Secret so the pod can patch it on first write-back.
+  create: true
+  # -- Name of the token Secret.
+  name: spotify-token
+  # -- Key inside the Secret holding the JSON token blob. Must match the seed command's --from-file key.
+  key: token_cache.json
+  # -- Path where the token Secret is mounted read-only inside the container.
+  mountPath: /app/secrets/token
 
 # Common labels
 labels:

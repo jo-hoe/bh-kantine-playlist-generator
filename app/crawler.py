@@ -90,8 +90,8 @@ def parse_page_page(url: str, max_retries: int = 3, retry_delay: float = 1.0) ->
         details = item.xpath('.' + ITEM_DETAIL_XPATH)
 
         if len(details) < 2:
-            logging.warning(
-                f"Insufficient details found for event with url: {get_link(item)}. Required at least date and one artist but found {len(details)} items.")
+            logging.info(
+                f"Skipping non-music event (no artists found): {get_link(item)}")
             continue
 
         date_str = details[0].text_content().strip()

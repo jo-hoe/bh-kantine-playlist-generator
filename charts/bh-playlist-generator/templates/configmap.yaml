@@ -8,7 +8,11 @@ metadata:
     {{- include "cronjob.labels" $ | nindent 4 }}
 data:
   IS_RUNNING_IN_CONTAINER: "true"
-  TOKEN_CACHE_FILE_PATH: {{ $.Values.cacheFilePath | quote }}
+  TOKEN_STORAGE: "secret"
+  TOKEN_CACHE_FILE_PATH: {{ printf "%s/%s" (trimSuffix "/" $.Values.tokenSecret.mountPath) $.Values.tokenSecret.key | quote }}
+  TOKEN_SECRET_NAME: {{ $.Values.tokenSecret.name | quote }}
+  TOKEN_SECRET_KEY: {{ $.Values.tokenSecret.key | quote }}
+  TOKEN_SECRET_NAMESPACE: {{ $.Release.Namespace | quote }}
   PLAYLIST_NAME: {{ .playlistName | quote }}
   MAX_TRACK_NUMBER_PER_ARTIST: {{ .maxTrackNumberPerArtist | quote }}
   LOCATION: {{ .location | quote }}

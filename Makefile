@@ -55,6 +55,10 @@ push-k3d: build ## build and push docker image to local registry
 	@docker tag ${IMAGE_NAME} localhost:5001/${IMAGE_NAME}:${IMAGE_VERSION}
 	@docker push localhost:5001/${IMAGE_NAME}:${IMAGE_VERSION}
 
+.PHONY: seed-token
+seed-token: ## run local OAuth and prepare the spotify-token Secret command (see doc/token-seeding.md)
+	@python ${ROOT_DIR}scripts/seed-token.py
+
 .PHONY: test-chart
 test-chart: ## run helm template and lint on chart
 	@helm template ${IMAGE_NAME} ${ROOT_DIR}charts/${IMAGE_NAME}
@@ -66,10 +70,6 @@ status-k3d: ## show status of all resources
 	@kubectl get pods -l app.kubernetes.io/name=bh-playlist-generator
 	@echo "=== CronJobs ==="
 	@kubectl get cronjobs -l app.kubernetes.io/name=bh-playlist-generator
-	@echo "=== PersistentVolumes ==="
-	@kubectl get pv
-	@echo "=== PersistentVolumeClaims ==="
-	@kubectl get pvc
 	@echo "=== ConfigMaps ==="
 	@kubectl get configmap -l app.kubernetes.io/name=bh-playlist-generator
 	@echo "=== Secrets ==="

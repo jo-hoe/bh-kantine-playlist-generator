@@ -1,0 +1,16 @@
+{{- if .Values.serviceAccount.create }}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ .Values.serviceAccount.name }}-token-writer
+  labels:
+    {{- include "cronjob.labels" . | nindent 4 }}
+rules:
+# Scoped to the single token Secret so the pod can read the current token and
+# write back a refreshed/rotated one. resourceNames cannot restrict list/create,
+# so neither verb is granted.
+- apiGroups: [""]
+  resources: ["secrets"]
+  resourceNames: ["{{ .Values.tokenSecret.name }}"]
+  verbs: ["get", "patch"]
+{{- end }}

@@ -75,9 +75,16 @@ The Make targets use a Python script instead of shell commands, ensuring compati
 
 The Python script handles environment variable loading and Helm deployment consistently across all platforms.
 
-### Persistent Volume
+### Token Secret
 
-The chart creates a PersistentVolume that maps to `/main/spotify/cache` inside the k3d cluster. This is automatically mounted from your local `./cache` directory thanks to the k3d configuration.
+The Spotify OAuth token is stored in a Kubernetes Secret (`spotify-token`), which
+the cronjob pod reads (mounted read-only) and updates via the Kubernetes API.
+Seed it before the first run — see [doc/token-seeding.md](doc/token-seeding.md):
+
+```bash
+make seed-token
+# then run the printed kubectl command against your k3d cluster
+```
 
 ## Testing the CronJob
 
@@ -120,9 +127,9 @@ The CronJob is scheduled to run daily at 9 AM by default. For testing purposes, 
    - Ensure Docker is running
    - Stop and restart the k3d cluster
 
-3. **PersistentVolume issues:**
-   - Ensure the `./cache` directory exists: `mkdir -p cache`
-   - Check volume permissions in the pod logs
+3. **Token / authentication issues:**
+   - Ensure the `spotify-token` Secret is seeded: see [doc/token-seeding.md](doc/token-seeding.md)
+   - `invalid_grant` / `Refresh token revoked` in the logs means the token must be re-seeded
 
 4. **Helm install fails:**
    - Test the chart first to validate it
@@ -140,8 +147,8 @@ kubectl get pods --all-namespaces
 # Describe a specific resource
 kubectl describe cronjob bh-playlist-generator
 
-# Check persistent volume status
-kubectl get pv,pvc
+# Check the token Secret
+kubectl get secret spotify-token -o yaml
 
 # Port forward to access internal services (if needed)
 kubectl port-forward svc/some-service 8080:80

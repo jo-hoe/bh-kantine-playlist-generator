@@ -57,18 +57,15 @@ def ensure_env(root_dir: str) -> str:
 
 
 def create_cluster(root_dir: str) -> None:
-    """Create the k3d cluster and inject the host cache volume."""
+    """Create the k3d cluster."""
     cluster_config = os.path.join(root_dir, "k3d", "clusterconfig.yaml")
-    cache_dir = os.path.abspath(os.path.join(root_dir, "cache"))
-    os.makedirs(cache_dir, exist_ok=True)
 
     k3d_cmd = [
         "k3d", "cluster", "create",
         "--config", cluster_config,
-        "--volume", f"{cache_dir}:/main/spotify/cache@server:0",
     ]
 
-    print("Creating k3d cluster (injecting host volume for Spotify cache)...")
+    print("Creating k3d cluster...")
     run(
         k3d_cmd,
         "Error: k3d command not found. Please make sure k3d is installed and in your PATH.",

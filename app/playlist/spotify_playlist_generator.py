@@ -1,8 +1,9 @@
 from __future__ import annotations
 
 from functools import lru_cache
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any, Dict, Iterable, List, Optional, Tuple
+import json
 import logging
 import os
 
@@ -14,6 +15,57 @@ from app.playlist.abstract_playlist_generator import AbstractPlaylistGenerator
 
 
 JSONDict = Dict[str, Any]
+
+# Spotify Developer-Dashboard refresh tokens have a hard 6-month lifetime that
+# cannot be extended by refreshing access tokens. Spotify exposes no expiry field
+# for the refresh token, so we track it ourselves via a "seeded_at" stamp written
+# at seed time (see scripts/seed-token.py).
+REFRESH_TOKEN_LIFETIME_DAYS: int = 180
+REFRESH_TOKEN_WARN_THRESHOLD_DAYS: int = 21
+
+# Extra key stored inside the token blob to record when authorization happened.
+SEEDED_AT_KEY: str = "seeded_at"
+
+
+def _log_refresh_token_lifetime(token_info: Optional[JSONDict]) -> None:
+    """
+    Log how much of the refresh token's 180-day lifetime remains, based on the
+    "seeded_at" stamp. This is an approximation from our recorded seed time (not
+    Spotify's server clock), accurate to roughly a day, and the only available
+    signal since Spotify does not expose refresh-token expiry.
+    """
+    if not token_info:
+        return
+
+    seeded_at_raw = token_info.get(SEEDED_AT_KEY)
+    if not seeded_at_raw:
+        logging.info(
+            "Spotify refresh token lifetime unknown (no 'seeded_at' stamp). "
+            "Re-seed via scripts/seed-token.py to establish it.")
+        return
+
+    try:
+        seeded_at = datetime.fromisoformat(seeded_at_raw)
+        if seeded_at.tzinfo is None:
+            seeded_at = seeded_at.replace(tzinfo=timezone.utc)
+    except (TypeError, ValueError):
+        logging.warning(
+            f"Could not parse 'seeded_at' value: {seeded_at_raw!r}. "
+            "Re-seed to refresh the stamp.")
+        return
+
+    age_days = (datetime.now(timezone.utc) - seeded_at).days
+    remaining_days = REFRESH_TOKEN_LIFETIME_DAYS - age_days
+    seeded_date = seeded_at.date().isoformat()
+
+    if remaining_days <= REFRESH_TOKEN_WARN_THRESHOLD_DAYS:
+        logging.warning(
+            f"Spotify refresh token: ~{remaining_days} days until expiry "
+            f"(seeded {seeded_date}). Re-seed soon via scripts/seed-token.py.")
+    else:
+        logging.info(
+            f"Spotify refresh token: ~{remaining_days} days until expiry "
+            f"(seeded {seeded_date}).")
 
 
 class SpotifyPlaylistGenerator(AbstractPlaylistGenerator):
@@ -49,12 +101,42 @@ class SpotifyPlaylistGenerator(AbstractPlaylistGenerator):
         maximum_tracks_per_artist: int,
         token_cache_file_path: str,
         is_running_in_container: bool,
+        token_storage: str = "file",
+        token_secret_name: str = "spotify-token",
+        token_secret_key: str = "token_cache.json",
+        token_secret_namespace: str = "",
     ) -> None:
         super().__init__(playlist_name, maximum_tracks_per_artist)
         self._token_cache_file_path = token_cache_file_path
         self._is_running_in_container = is_running_in_container
+        # Token storage: "file" (local dev) or "secret" (in-cluster k8s Secret).
+        # In "secret" mode, token_cache_file_path is the mounted Secret file path.
+        self._token_storage = token_storage.lower()
+        self._token_secret_name = token_secret_name
+        self._token_secret_key = token_secret_key
+        self._token_secret_namespace = token_secret_namespace
         # Warm client (and validate env) early
         self._get_spotify_client()
+
+    def _build_cache_handler(self) -> CacheHandler:
+        """
+        Select the cache handler based on the configured token storage backend.
+        """
+        if self._token_storage == "secret":
+            return K8sSecretCacheHandler(
+                secret_name=self._token_secret_name,
+                secret_key=self._token_secret_key,
+                namespace=self._token_secret_namespace,
+                mounted_file_path=self._token_cache_file_path,
+            )
+
+        handler = FileCacheHandler(filepath=self._token_cache_file_path)
+        if not handler.does_file_contain_data(self._token_cache_file_path):
+            logging.info(
+                f"Token cache file is missing or empty at: {self._token_cache_file_path}. "
+                "A new file will be created upon authentication."
+            )
+        return handler
 
     @lru_cache(maxsize=1)
     def _get_spotify_client(self) -> spotipy.Spotify:
@@ -63,12 +145,8 @@ class SpotifyPlaylistGenerator(AbstractPlaylistGenerator):
         """
         automatically_open_browser = not self._is_running_in_container
 
-        cache_handler = FileCacheHandler(filepath=self._token_cache_file_path)
-        if not cache_handler.does_file_contain_data(self._token_cache_file_path):
-            logging.info(
-                f"Token cache file is missing or empty at: {self._token_cache_file_path}. "
-                "A new file will be created upon authentication."
-            )
+        cache_handler = self._build_cache_handler()
+        _log_refresh_token_lifetime(cache_handler.get_cached_token())
 
         missing = [
             v for v in self.ENVIRONMENT_VARIABLES if not os.environ.get(v)]
@@ -381,9 +459,25 @@ class SpotifyPlaylistGenerator(AbstractPlaylistGenerator):
                 f"playlists/{playlist_id}/items", payload={"uris": chunk})
 
 
+def _preserve_seeded_at(token_info: JSONDict, previous: Optional[JSONDict]) -> JSONDict:
+    """
+    Ensure the "seeded_at" stamp survives write-backs. Spotipy rewrites the whole
+    token blob on refresh and its token_info will not contain "seeded_at", so we
+    copy it forward from the previously-cached blob when it is missing.
+    """
+    if token_info.get(SEEDED_AT_KEY):
+        return token_info
+    if previous and previous.get(SEEDED_AT_KEY):
+        token_info = dict(token_info)
+        token_info[SEEDED_AT_KEY] = previous[SEEDED_AT_KEY]
+    return token_info
+
+
 class FileCacheHandler(CacheHandler):
     """
-    Cache handler that stores tokens in a file using the legacy string/eval strategy.
+    Cache handler that stores the token as JSON in a local file. Used for local
+    development; the produced file is what scripts/seed-token.py uploads to the
+    Kubernetes Secret.
     """
 
     def __init__(self, filepath: str) -> None:
@@ -391,11 +485,18 @@ class FileCacheHandler(CacheHandler):
 
     def get_cached_token(self) -> Optional[JSONDict]:
         try:
-            with open(self.filepath, "r") as f:
-                token_info = f.read()
-                return eval(token_info)  # Convert string back to dictionary
+            with open(self.filepath, "r", encoding="utf-8") as f:
+                content = f.read().strip()
+                if not content:
+                    return None
+                return json.loads(content)
         except FileNotFoundError:
             logging.warning(f"Token cache file not found at: {self.filepath}")
+            return None
+        except json.JSONDecodeError as e:
+            logging.error(
+                f"Token cache at {self.filepath} is not valid JSON: {e}. "
+                "It may be an old-format token; re-seed via scripts/seed-token.py.")
             return None
         except Exception as e:
             logging.error(f"Error reading token from cache: {e}")
@@ -403,8 +504,9 @@ class FileCacheHandler(CacheHandler):
 
     def save_token_to_cache(self, token_info: JSONDict) -> None:
         try:
-            with open(self.filepath, "w") as f:
-                f.write(str(token_info))  # Convert dictionary to string
+            token_info = _preserve_seeded_at(token_info, self.get_cached_token())
+            with open(self.filepath, "w", encoding="utf-8") as f:
+                f.write(json.dumps(token_info))
         except Exception as e:
             logging.error(f"Error saving token to cache: {e}")
 
@@ -414,3 +516,75 @@ class FileCacheHandler(CacheHandler):
                 return bool(f.read().strip())
         except FileNotFoundError:
             return False
+
+
+class K8sSecretCacheHandler(CacheHandler):
+    """
+    Cache handler for in-cluster use. Reads the token from a Kubernetes Secret
+    mounted as a read-only volume file (fast, no API/RBAC needed on the read
+    path) and writes refreshed/rotated tokens back by patching the Secret via
+    the Kubernetes API (the only operation requiring RBAC).
+
+    The token is stored as JSON under `secret_key` inside the Secret.
+    """
+
+    def __init__(self, secret_name: str, secret_key: str, namespace: str,
+                 mounted_file_path: str) -> None:
+        self.secret_name = secret_name
+        self.secret_key = secret_key
+        self.namespace = namespace
+        self.mounted_file_path = mounted_file_path
+
+    def get_cached_token(self) -> Optional[JSONDict]:
+        try:
+            with open(self.mounted_file_path, "r", encoding="utf-8") as f:
+                content = f.read().strip()
+                if not content:
+                    return None
+                return json.loads(content)
+        except FileNotFoundError:
+            logging.info(
+                f"Token Secret not yet mounted/populated at: {self.mounted_file_path}. "
+                "Seed it via scripts/seed-token.py.")
+            return None
+        except json.JSONDecodeError as e:
+            logging.error(f"Mounted token Secret is not valid JSON: {e}.")
+            return None
+        except Exception as e:
+            logging.error(f"Error reading token from mounted Secret: {e}")
+            return None
+
+    def save_token_to_cache(self, token_info: JSONDict) -> None:
+        try:
+            token_info = _preserve_seeded_at(token_info, self.get_cached_token())
+            api = self._load_incluster_client()
+            namespace = self._resolve_namespace()
+            body = {"stringData": {self.secret_key: json.dumps(token_info)}}
+            api.patch_namespaced_secret(
+                name=self.secret_name, namespace=namespace, body=body)
+            logging.info(
+                f"Persisted refreshed Spotify token to Secret '{self.secret_name}'.")
+        except Exception as e:
+            # Do not crash the run if write-back fails; the token is still valid
+            # in memory for this run and will be refreshed again next time.
+            logging.error(
+                f"Failed to persist token to Secret '{self.secret_name}': {e}")
+
+    def _resolve_namespace(self) -> str:
+        if self.namespace:
+            return self.namespace
+        try:
+            with open(
+                "/var/run/secrets/kubernetes.io/serviceaccount/namespace",
+                "r", encoding="utf-8",
+            ) as f:
+                return f.read().strip()
+        except Exception:
+            return "default"
+
+    @staticmethod
+    def _load_incluster_client():
+        # Lazy import so local runs never require the kubernetes package.
+        from kubernetes import client, config
+        config.load_incluster_config()
+        return client.CoreV1Api()

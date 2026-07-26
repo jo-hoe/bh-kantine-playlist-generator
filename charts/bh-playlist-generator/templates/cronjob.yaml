@@ -35,6 +35,7 @@ spec:
         spec:
           activeDeadlineSeconds: {{ $.Values.cronjob.activeDeadlineSeconds }}
           restartPolicy: {{ $.Values.cronjob.restartPolicy }}
+          serviceAccountName: {{ $.Values.serviceAccount.name }}
           securityContext:
             fsGroup: 1000
           containers:
@@ -57,11 +58,12 @@ spec:
               value: {{ $jobTimeZone | quote }}
 {{- end }}
             volumeMounts:
-            - name: token-cache
-              mountPath: {{ dir $.Values.cacheFilePath | quote }}
-              readOnly: false
+            - name: spotify-token
+              mountPath: {{ $.Values.tokenSecret.mountPath | quote }}
+              readOnly: true
           volumes:
-          - name: token-cache
-            persistentVolumeClaim:
-              claimName: {{ $.Values.persistentVolumeClaim.name }}
+          - name: spotify-token
+            secret:
+              secretName: {{ $.Values.tokenSecret.name }}
+              optional: true
 {{- end }}
