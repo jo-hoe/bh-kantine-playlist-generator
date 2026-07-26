@@ -62,15 +62,20 @@ def run_local_oauth(root_dir: str, token_file: str) -> None:
     from app.playlist.spotify_playlist_generator import SpotifyPlaylistGenerator
 
     print("Starting Spotify OAuth flow (a browser window will open)...")
-    # Constructing the generator warms the client, which triggers the OAuth
-    # flow and writes the token file. File storage, browser enabled.
-    SpotifyPlaylistGenerator(
+    # Construct the generator (file storage, browser enabled), then make a real
+    # API call to force spotipy's interactive OAuth handshake, which writes the
+    # token file. Merely constructing the client does not trigger authorization.
+    generator = SpotifyPlaylistGenerator(
         playlist_name=os.getenv("PLAYLIST_NAME", "Kantine Am Berghain: Next Up"),
         maximum_tracks_per_artist=int(os.getenv("MAX_TRACK_NUMBER_PER_ARTIST", 3)),
         token_cache_file_path=token_file,
         is_running_in_container=False,
         token_storage="file",
     )
+    client = generator._get_spotify_client()
+    user = client.current_user()
+    if user and user.get("id"):
+        print(f"Authenticated as Spotify user: {user['id']}")
 
     if not os.path.exists(token_file) or not os.path.getsize(token_file):
         print(f"Error: OAuth did not produce a token file at {token_file}")

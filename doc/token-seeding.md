@@ -36,6 +36,40 @@ kubectl create secret generic spotify-token \
     --dry-run=client -o yaml | kubectl apply -f -
 ```
 
+### When `kubectl` runs on a remote SSH host
+
+If you run `kubectl` on a bastion / cluster host you SSH into (not on your
+laptop), the token file is on your laptop but the command must run remotely.
+Generate the manifest locally and pipe it into `kubectl apply` over SSH — the
+token never lands on the remote host's disk:
+
+```bash
+kubectl create secret generic spotify-token \
+    --namespace jobs \
+    --from-file=token_cache.json=cache/token_cache.txt \
+    --dry-run=client -o yaml \
+  | ssh youruser@yourhost 'kubectl apply -f -'
+```
+
+PowerShell equivalent (backtick line continuation):
+
+```powershell
+kubectl create secret generic spotify-token `
+    --namespace jobs `
+    --from-file=token_cache.json=cache/token_cache.txt `
+    --dry-run=client -o yaml `
+  | ssh youruser@yourhost 'kubectl apply -f -'
+```
+
+Notes:
+- This needs `kubectl` on your **laptop** too, but only for the client-side
+  `--dry-run` (it does not contact any cluster).
+- Use an SSH user that is allowed to log in. A piped stdin conflicts with an
+  interactive password prompt, so prefer key-based auth. If you must use a
+  password, use `scp` to copy the token to the host first, then run the
+  `kubectl create ... | kubectl apply -f -` command there and delete the file
+  afterwards.
+
 ## Manual equivalent (no script)
 
 ```bash
